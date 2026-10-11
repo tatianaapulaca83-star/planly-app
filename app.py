@@ -75,6 +75,11 @@ h1, h2, h3, h4 {
     letter-spacing: -0.7px;
 }
 
+.hero h1 {
+    font-family: 'Playfair Display', serif !important;
+    letter-spacing: 2px;
+}
+
 p, label, input, textarea, button, [data-testid="stMarkdownContainer"] {
     font-family: 'Nunito', sans-serif;
 }
@@ -1342,9 +1347,10 @@ with crear:
                     )
 
                     if clima["lluvia"] is not None:
-                        st.write(
-                            "**Probabilidad máxima de lluvia:** "
-                            f"{clima['lluvia']}%"
+                        st.markdown("**Probabilidad de lluvia**")
+                        st.progress(
+                            max(0, min(100, int(clima["lluvia"]))) / 100,
+                            text=f"{clima['lluvia']}% de probabilidad",
                         )
                 else:
                     st.info(
