@@ -334,7 +334,10 @@ if plan_compartido:
     if destino_compartido:
         st.link_button(
             "Abrir el lugar en Google Maps",
-            buscar_maps(f"{destino_compartido}, {plan_compartido.get('zona', '')}, Argentina"),
+            "https://www.google.com/maps/search/?" + urlencode({
+                "api": "1",
+                "query": f"{destino_compartido}, {plan_compartido.get('zona', '')}, Argentina",
+            }),
             use_container_width=True,
         )
     st.caption("Este enlace muestra una copia de los detalles compartidos. Los cambios posteriores del plan original no se actualizan automáticamente.")
