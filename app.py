@@ -656,7 +656,7 @@ def clave_orden_archivo(ruta):
 
 
 def imagenes_locales_turisticos():
-    """Encuentra fotos que se hayan subido sin necesidad de renombrarlas."""
+    """Devuelve las fotos del repositorio para asociarlas por nombre, no por orden."""
     extensiones = {".jpg", ".jpeg", ".png", ".webp"}
     nombres_de_momi = {MOMI, FAVICON, VIDEO, *IMAGENES_EXTRA}
     carpeta_fotos = CARPETA / "imagenes_lugares"
@@ -668,7 +668,6 @@ def imagenes_locales_turisticos():
             if p.is_file() and p.suffix.lower() in extensiones
         )
 
-    # También acepta fotos subidas directamente a la raíz del repositorio.
     candidatos.extend(
         p for p in CARPETA.iterdir()
         if p.is_file()
@@ -676,21 +675,42 @@ def imagenes_locales_turisticos():
         and p.name not in nombres_de_momi
         and p not in candidatos
     )
-    return sorted(candidatos, key=clave_orden_archivo)
+    return candidatos
 
 
 def obtener_foto_turistica(titulo, indice=None):
-    """Prefiere las fotos subidas al proyecto y usa Wikipedia como respaldo."""
+    """Usa una foto local solo si el nombre identifica el lugar; si no, busca su foto propia."""
     fotos = imagenes_locales_turisticos()
-    if indice is not None and indice < len(fotos):
-        return str(fotos[indice])
+    nombre = titulo.casefold()
 
+    # Asociaciones explícitas: nunca se asignan fotos según el orden alfabético.
+    palabras_clave = {
+        "parque de la costa": ("parque-de-la-costa",),
+        "puerto de frutos": ("puerto-de-frutos", "puerto_de_frutos"),
+        "museo de arte tigre": ("mat-tigre", "museo-de-arte-tigre"),
+        "caminito": ("caminito",),
+        "obelisco": ("obelisco",),
+        "planetario": ("planetario",),
+        "reserva ecológica": ("reserva-ecologica", "reserva_ecologica", "costanera-sur"),
+        "temaikèn": ("temaiken", "temaikén"),
+        "temaiken": ("temaiken", "temaikén"),
+    }
+
+    claves = next((v for k, v in palabras_clave.items() if k in nombre), ())
+    for foto in fotos:
+        nombre_archivo = foto.name.casefold()
+        if any(clave in nombre_archivo for clave in claves):
+            return str(foto)
+
+    # Si no existe una imagen local identificable para ese lugar, usar su propia foto de Wikipedia.
     try:
         url = "https://es.wikipedia.org/api/rest_v1/page/summary/" + quote(titulo.replace(" ", "_"), safe="")
         respuesta = requests.get(url, timeout=6)
         if respuesta.ok:
             datos = respuesta.json()
-            return datos.get("thumbnail", {}).get("source")
+            miniatura = datos.get("thumbnail", {}).get("source")
+            if miniatura:
+                return miniatura
     except (requests.RequestException, ValueError):
         pass
     return None
