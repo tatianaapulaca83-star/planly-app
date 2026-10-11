@@ -154,6 +154,156 @@ footer {
 """, unsafe_allow_html=True)
 
 # =========================================================
+# 2.1. AUTENTICACIÓN CON FIREBASE
+# =========================================================
+
+import requests
+
+FIREBASE_API_KEY = st.secrets["firebase"]["api_key"]
+FIREBASE_PROJECT_ID = st.secrets["firebase"]["project_id"]
+
+URL_AUTH = (
+    "https://identitytoolkit.googleapis.com/v1/accounts"
+)
+
+def autenticar_firebase(modo, email, password):
+    endpoints = {
+        "registro": "signUp",
+        "login": "signInWithPassword",
+    }
+
+    url = (
+        f"{URL_AUTH}:{endpoints[modo]}"
+        f"?key={FIREBASE_API_KEY}"
+    )
+
+    try:
+        respuesta = requests.post(
+            url,
+            json={
+                "email": email,
+                "password": password,
+                "returnSecureToken": True,
+            },
+            timeout=15,
+        )
+
+        datos = respuesta.json()
+
+        if respuesta.ok:
+            st.session_state.firebase_user = {
+                "uid": datos["localId"],
+                "email": datos["email"],
+                "id_token": datos["idToken"],
+                "refresh_token": datos["refreshToken"],
+            }
+            return True, ""
+
+        codigo = datos.get("error", {}).get("message", "")
+        mensajes = {
+            "EMAIL_EXISTS": "Ese correo ya tiene una cuenta.",
+            "INVALID_EMAIL": "El correo no es válido.",
+            "INVALID_LOGIN_CREDENTIALS":
+                "El correo o la contraseña son incorrectos.",
+            "WEAK_PASSWORD : Password should be at least 6 characters":
+                "La contraseña debe tener al menos 6 caracteres.",
+            "TOO_MANY_ATTEMPTS_TRY_LATER":
+                "Demasiados intentos. Probá más tarde.",
+        }
+
+        if codigo.startswith("WEAK_PASSWORD"):
+            return False, "La contraseña debe tener al menos 6 caracteres."
+
+        return False, mensajes.get(
+            codigo,
+            "No pudimos completar la operación. Revisá los datos e intentá nuevamente.",
+        )
+
+    except requests.RequestException:
+        return False, "No pudimos conectar con Firebase. Intentá nuevamente."
+
+
+# Mostrar acceso antes de entrar a Planly
+if "firebase_user" not in st.session_state:
+    st.session_state.firebase_user = None
+
+if not st.session_state.firebase_user:
+    st.markdown("## Bienvenido/a a Planly")
+    st.write("Ingresá a tu cuenta o creá una nueva para comenzar.")
+
+    pesta_login, pesta_registro = st.tabs(
+        ["Iniciar sesión", "Crear cuenta"]
+    )
+
+    with pesta_login:
+        with st.form("firebase_login"):
+            email_login = st.text_input("Correo electrónico")
+            password_login = st.text_input(
+                "Contraseña",
+                type="password",
+            )
+            enviar_login = st.form_submit_button(
+                "Iniciar sesión",
+                type="primary",
+                use_container_width=True,
+            )
+
+        if enviar_login:
+            if not email_login.strip() or not password_login:
+                st.warning("Completá el correo y la contraseña.")
+            else:
+                correcto, mensaje = autenticar_firebase(
+                    "login",
+                    email_login.strip(),
+                    password_login,
+                )
+                if correcto:
+                    st.rerun()
+                else:
+                    st.error(mensaje)
+
+    with pesta_registro:
+        with st.form("firebase_registro"):
+            email_registro = st.text_input(
+                "Tu correo electrónico",
+                key="registro_email",
+            )
+            password_registro = st.text_input(
+                "Creá una contraseña (mínimo 6 caracteres)",
+                type="password",
+                key="registro_password",
+            )
+            confirmar_password = st.text_input(
+                "Confirmá tu contraseña",
+                type="password",
+            )
+            enviar_registro = st.form_submit_button(
+                "Crear mi cuenta",
+                type="primary",
+                use_container_width=True,
+            )
+
+        if enviar_registro:
+            if not email_registro.strip() or not password_registro:
+                st.warning("Completá todos los campos.")
+            elif password_registro != confirmar_password:
+                st.error("Las contraseñas no coinciden.")
+            elif len(password_registro) < 6:
+                st.error("La contraseña debe tener al menos 6 caracteres.")
+            else:
+                correcto, mensaje = autenticar_firebase(
+                    "registro",
+                    email_registro.strip(),
+                    password_registro,
+                )
+                if correcto:
+                    st.rerun()
+                else:
+                    st.error(mensaje)
+
+    st.stop()
+
+# =========================================================
 # 3. CATEGORÍAS Y OPCIONES
 # =========================================================
 
