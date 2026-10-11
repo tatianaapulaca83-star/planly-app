@@ -1255,8 +1255,20 @@ with crear:
             "transporte, entradas ni gastos adicionales."
         )
 
+        preferencias_busqueda = [
+            preferencia.lower()
+            for preferencia in plan["preferencias"]
+            if preferencia != "Indistinto"
+        ]
+        detalle_preferencias = (
+            ", " + ", ".join(preferencias_busqueda)
+            if preferencias_busqueda
+            else ""
+        )
+
         consulta_plan = (
-            f"{CATEGORIAS[plan['actividad']]}, "
+            f"{CATEGORIAS[plan['actividad']]}"
+            f"{detalle_preferencias}, "
             f"{plan['zona']}, Argentina"
         )
 
