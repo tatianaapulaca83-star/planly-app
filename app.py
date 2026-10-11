@@ -50,7 +50,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
 
 :root {
     --azul: #4777D8;
@@ -66,7 +66,7 @@ st.markdown("""
 .stApp {
     background: var(--fondo);
     color: var(--texto);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Nunito', sans-serif;
 }
 
 h1, h2, h3, h4 {
@@ -80,8 +80,8 @@ h1, h2, h3, h4 {
     letter-spacing: 2px;
 }
 
-p, label, input, textarea, button, [data-testid="stMarkdownContainer"] {
-    font-family: 'Nunito', sans-serif;
+p, label, input, textarea, button, select, [data-testid="stMarkdownContainer"], [data-baseweb="select"] {
+    font-family: 'Nunito', sans-serif !important;
 }
 
 .block-container {
@@ -143,7 +143,7 @@ div[data-testid="stTabs"] [data-baseweb="tab-list"] {
 }
 
 div[data-testid="stTabs"] button {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito', sans-serif !important;
     font-size: 0.96rem;
     font-weight: 800;
     color: #536783;
@@ -173,7 +173,7 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
 .stLinkButton > a,
 .stFormSubmitButton > button {
     border-radius: 13px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito', sans-serif !important;
     font-weight: 800;
     min-height: 48px;
     border: 1px solid #D5E2F8;
@@ -190,15 +190,15 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
 
 .stButton > button[kind="primary"],
 .stFormSubmitButton > button[kind="primary"] {
-    background: var(--azul);
-    border-color: var(--azul);
-    color: #FFFFFF;
+    background: #8FB7F5;
+    border-color: #8FB7F5;
+    color: #173B70;
 }
 
 .stButton > button[kind="primary"]:hover,
 .stFormSubmitButton > button[kind="primary"]:hover {
-    background: #1D4ED8;
-    border-color: #1D4ED8;
+    background: #729FEA;
+    border-color: #729FEA;
 }
 
 /* Campos y selectores */
@@ -413,7 +413,23 @@ if "firebase_user" not in st.session_state:
     st.session_state.firebase_user = None
 
 if not st.session_state.firebase_user:
-    st.markdown("## Bienvenido/a a Planly")
+    acceso_texto, acceso_momi = st.columns([1.35, 1], gap="large", vertical_alignment="center")
+    with acceso_texto:
+        st.markdown("""
+        <div class="hero">
+            <p style="font-weight:800; letter-spacing:2px; text-transform:uppercase;">Tu próxima historia empieza acá</p>
+            <h1 style="font-size:clamp(2.2rem,5vw,3.4rem); letter-spacing:1px;">Planly</h1>
+            <p>Organizá salidas, descubrí lugares y guardá tus ideas favoritas.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with acceso_momi:
+        pose_acceso = CARPETA / IMAGENES_EXTRA[1]
+        if pose_acceso.exists():
+            st.image(str(pose_acceso), use_container_width=True)
+        elif (CARPETA / MOMI).exists():
+            st.image(str(CARPETA / MOMI), use_container_width=True)
+
+    st.markdown("## Bienvenido/a")
     st.write("Ingresá a tu cuenta o creá una nueva para comenzar.")
 
     pesta_login, pesta_registro = st.tabs(
@@ -1065,13 +1081,30 @@ with explorar:
     st.markdown("---")
     st.markdown("### Inspirate con estas categorías")
 
+    tonos_categoria = [
+        ("#EAF1FF", "#4269B2", "#D4E2FF"),
+        ("#E4F5FF", "#28749A", "#C6E9FA"),
+        ("#F0EBFF", "#7055A5", "#DDD2FF"),
+        ("#E8F0FF", "#4965A0", "#D2DFFF"),
+        ("#E6F7F7", "#327E83", "#C9ECEA"),
+        ("#F1EEFF", "#6759A5", "#DDD7FF"),
+        ("#E8F4FF", "#356F9B", "#CFE7FA"),
+        ("#F3EDFF", "#795AA4", "#E4D6FF"),
+        ("#EAF0FF", "#3F619D", "#D4E0FF"),
+        ("#E5F6FF", "#367A9D", "#C8EAF8"),
+    ]
     columnas = st.columns(2)
 
     for i, (categoria, descripcion) in enumerate(CATEGORIAS.items()):
+        fondo_cat, texto_cat, borde_cat = tonos_categoria[i % len(tonos_categoria)]
         with columnas[i % 2]:
-            with st.container(border=True):
-                st.markdown(f"**{categoria}**")
-                st.caption(descripcion.capitalize())
+            st.markdown(
+                f'''<div style="background:{fondo_cat}; border:1px solid {borde_cat}; border-radius:18px; padding:18px 20px; margin-bottom:12px; min-height:105px;">
+                    <div style="font-weight:900; color:{texto_cat}; font-size:1.02rem; margin-bottom:7px;">{categoria}</div>
+                    <div style="color:#52647D; font-size:0.9rem; line-height:1.5;">{descripcion.capitalize()}</div>
+                </div>''',
+                unsafe_allow_html=True,
+            )
 
 # =========================================================
 # 10. CREAR UN PLAN
