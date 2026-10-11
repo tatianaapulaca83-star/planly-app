@@ -1218,6 +1218,12 @@ with crear:
             list(CATEGORIAS.keys()),
         )
 
+        detalle_actividad_plan = st.text_input(
+            "Si elegiste «Otra actividad», ¿qué querés hacer?",
+            placeholder="Ej.: jugar al bowling, escalar en palestra, andar en bici, hacer kayak",
+            help="Si elegís otra actividad, escribila acá para buscar lugares más precisos.",
+        )
+
         fecha_plan = st.date_input(
             "Fecha de la salida",
             value=date.today() + timedelta(days=1),
@@ -1300,9 +1306,16 @@ with crear:
             else:
                 limite_total = presupuesto
 
+            actividad_final = (
+                detalle_actividad_plan.strip()
+                if actividad_plan == "Otra actividad" and detalle_actividad_plan.strip()
+                else actividad_plan
+            )
+
             nuevo_plan = {
                 "zona": zona_plan.strip(),
-                "actividad": actividad_plan,
+                "actividad": actividad_final,
+                "categoria_original": actividad_plan,
                 "fecha": fecha_plan.isoformat(),
                 "hora": hora_plan,
                 "personas": int(personas_plan),
@@ -1402,13 +1415,22 @@ with crear:
             else ""
         )
 
+        if plan.get("categoria_original") == "Otra actividad":
+            actividad_busqueda = plan["actividad"]
+        else:
+            actividad_busqueda = CATEGORIAS.get(
+                plan.get("categoria_original", plan["actividad"]),
+                plan["actividad"],
+            )
+
         consulta_plan = (
-            f"{CATEGORIAS[plan['actividad']]}"
+            f"{actividad_busqueda}"
             f"{detalle_preferencias}, "
             f"{plan['zona']}, Argentina"
         )
 
-        st.markdown("###  Lugares y mapa")
+        st.markdown("### Lugares y mapa")
+        st.caption(f"Buscamos opciones relacionadas con: {plan['actividad']}")
 
         st.link_button(
             "Ver lugares para esta salida",
@@ -1433,6 +1455,30 @@ with crear:
                 plan["transporte"],
             ),
             use_container_width=True,
+        )
+
+        st.markdown("### Eventos y actividades especiales")
+        st.write(
+            "También podés descubrir ferias, festivales, recorridos, talleres y eventos deportivos "
+            "que se organicen cerca de la fecha de tu salida."
+        )
+        fecha_evento = date.fromisoformat(plan["fecha"]).strftime("%d/%m/%Y")
+        consulta_eventos = urlencode({
+            "q": f"eventos actividades {plan['zona']} {fecha_evento} agenda oficial"
+        })
+        st.link_button(
+            "Buscar eventos para esa fecha y zona",
+            "https://www.google.com/search?" + consulta_eventos,
+            use_container_width=True,
+        )
+        st.link_button(
+            "Explorar agenda oficial de Buenos Aires",
+            "https://turismo.buenosaires.gob.ar/es/que-hacer-en-la-ciudad",
+            use_container_width=True,
+        )
+        st.caption(
+            "Los eventos cambian según la fecha y el lugar. Revisá la página oficial del organizador "
+            "para confirmar fecha, inscripción, entradas y posibles cambios."
         )
 
         if plan["ver_clima"]:
@@ -1503,7 +1549,7 @@ with crear:
             )
         else:
             alternativa = (
-                f"{CATEGORIAS[plan['actividad']]} y "
+                f"{CATEGORIAS.get(plan.get('categoria_original', plan['actividad']), plan['actividad'])} y "
                 "otras actividades bajo techo"
             )
             st.write(
