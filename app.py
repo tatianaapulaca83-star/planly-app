@@ -966,9 +966,7 @@ with inicio:
         "¡A descubrir!",
     )
 
-    if archivo(VIDEO).exists():
-        st.markdown("### Un vistazo a Planly")
-        st.video(str(archivo(VIDEO)))
+    st.caption("El video de presentación está disponible en el encabezado de Planly.")
 
 
 # =========================================================
