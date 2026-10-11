@@ -166,13 +166,59 @@ URL_AUTH = (
     "https://identitytoolkit.googleapis.com/v1/accounts"
 )
 
+
 def autenticar_firebase(modo, email, password):
     endpoints = {
         "registro": "signUp",
         "login": "signInWithPassword",
     }
-except requests.RequestException:
-    return False, "No pudimos conectar con Firebase. Intentá nuevamente."
+
+    url = (
+        f"{URL_AUTH}:{endpoints[modo]}"
+        f"?key={FIREBASE_API_KEY}"
+    )
+
+    try:
+        respuesta = requests.post(
+            url,
+            json={
+                "email": email,
+                "password": password,
+                "returnSecureToken": True,
+            },
+            timeout=15,
+        )
+
+        datos = respuesta.json()
+
+        if respuesta.ok:
+            st.session_state.firebase_user = {
+                "uid": datos["localId"],
+                "email": datos["email"],
+                "id_token": datos["idToken"],
+                "refresh_token": datos["refreshToken"],
+            }
+            return True, ""
+
+        codigo = datos.get("error", {}).get("message", "")
+
+        if codigo.startswith("WEAK_PASSWORD"):
+            return False, "La contraseña debe tener al menos 6 caracteres."
+
+        mensajes = {
+            "EMAIL_EXISTS": "Ese correo ya tiene una cuenta.",
+            "INVALID_EMAIL": "El correo no es válido.",
+            "INVALID_LOGIN_CREDENTIALS": "El correo o la contraseña son incorrectos.",
+            "TOO_MANY_ATTEMPTS_TRY_LATER": "Demasiados intentos. Probá más tarde.",
+        }
+
+        return False, mensajes.get(
+            codigo,
+            "No pudimos completar la operación. Revisá los datos e intentá nuevamente.",
+        )
+
+    except requests.RequestException:
+        return False, "No pudimos conectar con Firebase. Intentá nuevamente."
     url = (
         f"{URL_AUTH}:{endpoints[modo]}"
         f"?key={FIREBASE_API_KEY}"
