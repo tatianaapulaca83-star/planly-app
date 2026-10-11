@@ -6,6 +6,7 @@ from urllib.parse import urlencode, quote
 from urllib.request import urlopen
 from urllib.error import URLError
 import json
+import re
 
 # =========================================================
 # 1. CONFIGURACIÓN
@@ -648,9 +649,42 @@ def buscar_maps(consulta):
     })
     return "https://www.google.com/maps/search/?" + parametros
 
-@st.cache_data(ttl=86400, show_spinner=False)
-def obtener_foto_turistica(titulo):
-    """Obtiene una miniatura real del lugar desde Wikipedia, si está disponible."""
+def clave_orden_archivo(ruta):
+    """Ordena nombres como foto2 antes que foto10."""
+    return [int(parte) if parte.isdigit() else parte.casefold()
+            for parte in re.split(r"(\d+)", ruta.name)]
+
+
+def imagenes_locales_turisticos():
+    """Encuentra fotos que se hayan subido sin necesidad de renombrarlas."""
+    extensiones = {".jpg", ".jpeg", ".png", ".webp"}
+    nombres_de_momi = {MOMI, FAVICON, VIDEO, *IMAGENES_EXTRA}
+    carpeta_fotos = CARPETA / "imagenes_lugares"
+    candidatos = []
+
+    if carpeta_fotos.exists():
+        candidatos.extend(
+            p for p in carpeta_fotos.iterdir()
+            if p.is_file() and p.suffix.lower() in extensiones
+        )
+
+    # También acepta fotos subidas directamente a la raíz del repositorio.
+    candidatos.extend(
+        p for p in CARPETA.iterdir()
+        if p.is_file()
+        and p.suffix.lower() in extensiones
+        and p.name not in nombres_de_momi
+        and p not in candidatos
+    )
+    return sorted(candidatos, key=clave_orden_archivo)
+
+
+def obtener_foto_turistica(titulo, indice=None):
+    """Prefiere las fotos subidas al proyecto y usa Wikipedia como respaldo."""
+    fotos = imagenes_locales_turisticos()
+    if indice is not None and indice < len(fotos):
+        return str(fotos[indice])
+
     try:
         url = "https://es.wikipedia.org/api/rest_v1/page/summary/" + quote(titulo.replace(" ", "_"), safe="")
         respuesta = requests.get(url, timeout=6)
@@ -662,22 +696,34 @@ def obtener_foto_turistica(titulo):
     return None
 
 
-def crear_ruta(destino, transporte):
+def crear_ruta(destino, transporte, origen=None):
     modos = {
         "Caminando": "walking",
         "Colectivo": "transit",
         "Tren": "transit",
         "Auto": "driving",
         "Transporte por aplicación": "driving",
-        "Todavía no lo sé": "driving",
+        "Todavía no lo sé": "transit",
     }
 
-    parametros = urlencode({
+    parametros = {
         "api": "1",
         "destination": destino,
-        "travelmode": modos.get(transporte, "driving"),
+        "travelmode": modos.get(transporte, "transit"),
+    }
+    if origen:
+        parametros["origin"] = origen
+    return "https://www.google.com/maps/dir/?" + urlencode(parametros)
+
+
+def buscar_alrededor(consulta, zona):
+    return buscar_maps(f"{consulta} cerca de {zona}, Argentina")
+
+
+def buscar_info_lugar(nombre):
+    return "https://www.google.com/search?" + urlencode({
+        "q": f"{nombre} entrada precio horarios sitio oficial"
     })
-    return "https://www.google.com/maps/dir/?" + parametros
 
 def dinero(valor):
     return "$"+ f"{valor:,.0f}".replace(",", ".")
@@ -1107,56 +1153,64 @@ with explorar:
             "nombre": "Parque de la Costa",
             "wiki": "Parque de la Costa",
             "zona": "Tigre, Buenos Aires",
-            "descripcion": "Parque de diversiones ideal para pasar el día.",
+            "descripcion": "Parque de diversiones con juegos y atracciones para pasar varias horas.",
+            "costo": "Entrada paga. El valor depende del tipo de pase y la fecha.",
             "busqueda": "Parque de la Costa, Tigre, Buenos Aires",
         },
         {
             "nombre": "Puerto de Frutos",
             "wiki": "Puerto de Frutos",
             "zona": "Tigre, Buenos Aires",
-            "descripcion": "Paseo junto al río con puestos, decoración y artesanías.",
+            "descripcion": "Paseo junto al río con puestos, artesanías, decoración y opciones para comer.",
+            "costo": "Recorrerlo es gratis; compras y consumos se pagan aparte.",
             "busqueda": "Puerto de Frutos, Tigre, Buenos Aires",
         },
         {
             "nombre": "Museo de Arte Tigre",
             "wiki": "Museo de Arte Tigre",
             "zona": "Tigre, Buenos Aires",
-            "descripcion": "Museo de arte en un edificio histórico frente al río.",
+            "descripcion": "Museo en un edificio histórico frente al río, con exposiciones de arte.",
+            "costo": "La entrada y los descuentos pueden variar; confirmar antes de ir.",
             "busqueda": "Museo de Arte Tigre, Buenos Aires",
         },
         {
             "nombre": "Caminito",
             "wiki": "Caminito",
             "zona": "La Boca, Ciudad de Buenos Aires",
-            "descripcion": "Calle museo al aire libre con casas coloridas y arte.",
+            "descripcion": "Calle museo al aire libre, conocida por sus casas coloridas, artistas y tango.",
+            "costo": "Recorrer la calle es gratis; comer o comprar recuerdos tiene costo.",
             "busqueda": "Caminito, La Boca, Buenos Aires",
         },
         {
             "nombre": "Obelisco",
             "wiki": "Obelisco de Buenos Aires",
             "zona": "Centro, Ciudad de Buenos Aires",
-            "descripcion": "Uno de los monumentos más conocidos de la ciudad.",
+            "descripcion": "Monumento emblemático de la ciudad, ideal para una parada breve y fotos.",
+            "costo": "Verlo desde el espacio público es gratis.",
             "busqueda": "Obelisco de Buenos Aires",
         },
         {
             "nombre": "Planetario Galileo Galilei",
             "wiki": "Planetario Galileo Galilei",
             "zona": "Palermo, Ciudad de Buenos Aires",
-            "descripcion": "Un paseo para descubrir astronomía y el espacio.",
+            "descripcion": "Un paseo para aprender sobre astronomía mediante funciones y actividades.",
+            "costo": "Las funciones pueden ser pagas; consultar la programación y tarifa vigente.",
             "busqueda": "Planetario Galileo Galilei, Buenos Aires",
         },
         {
             "nombre": "Reserva Ecológica Costanera Sur",
             "wiki": "Reserva Ecológica de Buenos Aires",
             "zona": "Puerto Madero, Ciudad de Buenos Aires",
-            "descripcion": "Senderos y naturaleza para recorrer al aire libre.",
+            "descripcion": "Senderos para caminar, observar aves y disfrutar de la naturaleza al aire libre.",
+            "costo": "El acceso general suele ser gratuito; revisar avisos por cierres o actividades.",
             "busqueda": "Reserva Ecológica Costanera Sur, Buenos Aires",
         },
         {
             "nombre": "Temaikèn",
             "wiki": "Temaikèn",
             "zona": "Belén de Escobar, Buenos Aires",
-            "descripcion": "Bioparque para conocer animales y ambientes naturales.",
+            "descripcion": "Bioparque con animales, ambientes naturales y espacios educativos para recorrer en familia.",
+            "costo": "Entrada paga; consultar el precio vigente y comprar solo en canales oficiales.",
             "busqueda": "Temaikèn, Escobar, Buenos Aires",
         },
     ]
@@ -1174,7 +1228,7 @@ with explorar:
             with columna:
                 fondo_lugar, texto_lugar, borde_lugar = tonos_lugares[(inicio_lote // 2) % len(tonos_lugares)]
                 with st.container(border=True):
-                    foto_lugar = obtener_foto_turistica(lugar["wiki"])
+                    foto_lugar = obtener_foto_turistica(lugar["wiki"], lugares_turisticos.index(lugar))
                     if foto_lugar:
                         st.image(foto_lugar, use_container_width=True)
                     else:
@@ -1185,13 +1239,19 @@ with explorar:
                     st.markdown(f"### {lugar['nombre']}")
                     st.caption(lugar["zona"])
                     st.write(lugar["descripcion"])
+                    st.caption("**Costo orientativo:** " + lugar["costo"])
+                    st.link_button(
+                        "Consultar precio y horarios",
+                        buscar_info_lugar(lugar["nombre"]),
+                        use_container_width=True,
+                    )
                     st.link_button(
                         "Ver en Google Maps",
                         buscar_maps(lugar["busqueda"]),
                         use_container_width=True,
                     )
 
-    st.caption("Las fotos se cargan desde Wikipedia cuando hay una imagen disponible. Confirmá horarios, entradas y disponibilidad antes de ir.")
+    st.caption("Planly usa primero las fotos que subiste al repositorio; si no encuentra una, intenta mostrar una imagen de Wikipedia. Los precios pueden cambiar: confirmalos antes de salir.")
 
 # =========================================================
 # 10. CREAR UN PLAN
@@ -1448,14 +1508,53 @@ with crear:
             scrolling=False,
         )
 
-        st.link_button(
-            "Cómo llegar a la zona",
-            crear_ruta(
-                f"{plan['zona']}, Argentina",
-                plan["transporte"],
-            ),
-            use_container_width=True,
+        st.markdown("### Opciones cerca de tu salida")
+        st.write("Además del mapa, podés abrir búsquedas específicas de lugares cercanos. Google Maps mostrará las opciones disponibles según la zona.")
+        categorias_cercanas = [
+            ("Restaurantes", "restaurantes"),
+            ("Cafeterías y meriendas", "cafeterías para merendar"),
+            ("Heladerías", "heladerías"),
+            ("Parques y paseos", "parques y lugares para pasear"),
+        ]
+        columnas_cercanas = st.columns(2, gap="medium")
+        for i, (etiqueta_cercana, consulta_cercana) in enumerate(categorias_cercanas):
+            with columnas_cercanas[i % 2]:
+                st.link_button(
+                    etiqueta_cercana,
+                    buscar_alrededor(consulta_cercana, plan["zona"]),
+                    use_container_width=True,
+                )
+
+        st.markdown("### Cómo llegar y cuánto tarda")
+        st.write(
+            "Elegí el medio de transporte y Google Maps calculará el recorrido y los minutos "
+            "estimados con el tránsito y los servicios disponibles en ese momento. Planly no inventa tiempos de viaje."
         )
+        destino_ruta = consulta_plan
+        origen_ruta = f"{plan['zona']}, Argentina"
+        col_ruta1, col_ruta2 = st.columns(2, gap="medium")
+        with col_ruta1:
+            st.link_button(
+                "Ruta en transporte público",
+                crear_ruta(destino_ruta, "Colectivo", origen=origen_ruta),
+                use_container_width=True,
+            )
+            st.link_button(
+                "Ruta caminando",
+                crear_ruta(destino_ruta, "Caminando", origen=origen_ruta),
+                use_container_width=True,
+            )
+        with col_ruta2:
+            st.link_button(
+                "Ruta en auto",
+                crear_ruta(destino_ruta, "Auto", origen=origen_ruta),
+                use_container_width=True,
+            )
+            st.link_button(
+                "Ruta según tu preferencia",
+                crear_ruta(destino_ruta, plan["transporte"], origen=origen_ruta),
+                use_container_width=True,
+            )
 
         st.markdown("### Eventos y actividades especiales")
         st.write(
