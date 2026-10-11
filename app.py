@@ -1489,6 +1489,39 @@ with crear:
             f"{plan['zona']}, Argentina"
         )
 
+        st.markdown("### Tu plan del día")
+        st.write("Este es un horario orientativo que podés adaptar según los turnos, el viaje y el presupuesto.")
+
+        agenda = {
+            "Mañana": [("09:30", "Llegada y traslado"), ("10:00–12:00", "Actividad principal"), ("12:15", "Pausa para comer"), ("13:30", "Paseo corto o descanso"), ("15:00", "Regreso según el transporte disponible")],
+            "Mediodía": [("12:00", "Llegada y traslado"), ("12:30–14:00", "Actividad principal"), ("14:15", "Pausa para comer"), ("15:30", "Paseo corto o descanso"), ("17:00", "Regreso según el transporte disponible")],
+            "Tarde": [("15:00", "Llegada y traslado"), ("15:30–17:30", "Actividad principal"), ("17:45", "Merienda o pausa"), ("18:30", "Paseo corto o descanso"), ("20:00", "Regreso según el transporte disponible")],
+            "Atardecer": [("17:00", "Llegada y traslado"), ("17:30–19:00", "Actividad principal"), ("19:15", "Pausa para comer"), ("20:15", "Paseo corto o descanso"), ("21:00", "Regreso según el transporte disponible")],
+            "Noche": [("19:00", "Llegada y traslado"), ("19:30–21:00", "Actividad principal"), ("21:15", "Cena o algo para comer"), ("22:00", "Preparar el regreso"), ("22:30", "Volver según el transporte disponible")],
+        }
+        for horario, titulo in agenda.get(plan["hora"], agenda["Tarde"]):
+            with st.container(border=True):
+                st.markdown(f"**{horario} · {titulo}**")
+                if titulo == "Actividad principal":
+                    st.write(f"Tiempo sugerido para disfrutar: {plan['actividad']}. Revisá si necesitás entrada o reserva.")
+                elif titulo == "Pausa para comer" or titulo == "Merienda o pausa" or titulo == "Cena o algo para comer":
+                    if plan["gasto_total"] > limite_total:
+                        st.write("Para cuidar el presupuesto, buscá una opción económica o llevá algo preparado.")
+                    else:
+                        st.write("Elegí un lugar cercano que encaje con el presupuesto y revisá los precios del menú.")
+                elif titulo == "Paseo corto o descanso":
+                    st.write("Si queda tiempo, sumá una caminata o un lugar gratuito cercano; si no, disfrutá sin apuro.")
+                elif titulo == "Llegada y traslado":
+                    st.write(f"Organizá el viaje hacia {plan['zona']} y revisá posibles demoras en Google Maps.")
+                else:
+                    st.write("Consultá el recorrido actualizado antes de salir para calcular el tiempo de viaje.")
+
+        st.link_button(
+            "Buscar dónde comer cerca",
+            buscar_alrededor("restaurantes económicos", plan["zona"]),
+            use_container_width=True,
+        )
+
         st.markdown("### Lugares y mapa")
         st.caption(f"Buscamos opciones relacionadas con: {plan['actividad']}")
 
