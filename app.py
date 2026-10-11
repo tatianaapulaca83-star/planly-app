@@ -655,6 +655,30 @@ if "busqueda_actual" not in st.session_state:
 
 if "plan_actual" not in st.session_state:
     st.session_state.plan_actual = None
+    
+# =========================================================
+# 5.1. CARGAR LOS DATOS DEL USUARIO DESDE FIRESTORE
+# =========================================================
+
+if (
+    st.session_state.get("firebase_user")
+    and not st.session_state.get("firestore_cargado", False)
+):
+    try:
+        planes_guardados, favoritos_guardados = (
+            cargar_datos_firestore()
+        )
+
+        st.session_state.planes = planes_guardados
+        st.session_state.favoritos = favoritos_guardados
+        st.session_state.firestore_cargado = True
+
+    except Exception:
+        st.warning(
+            "No pudimos cargar tus datos guardados. "
+            "Revisá tu conexión e intentá nuevamente."
+        )
+
 
 # =========================================================
 # 6. ENCABEZADO SIN LOGO
