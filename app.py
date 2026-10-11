@@ -1179,7 +1179,7 @@ with explorar:
                         st.image(foto_lugar, use_container_width=True)
                     else:
                         st.markdown(
-                            f'<div style="background:{fondo_lugar}; border-radius:14px; padding:24px; color:{texto_lugar}; text-align:center; font-weight:800;">{lugar["nombre"]}</div>',
+                            f'<div style="background:{fondo_lugar}; border:1px dashed {borde_lugar}; border-radius:14px; padding:24px; color:{texto_lugar}; text-align:center; font-weight:700;">Foto no disponible por el momento</div>',
                             unsafe_allow_html=True,
                         )
                     st.markdown(f"### {lugar['nombre']}")
