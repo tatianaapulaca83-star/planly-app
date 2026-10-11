@@ -1024,20 +1024,9 @@ with crear:
                 "ver_clima": ver_clima,
             }
 
+            
             st.session_state.planes.append(nuevo_plan)
             st.session_state.plan_actual = nuevo_plan
-            
-            
-    try:
-        guardar_datos_firestore(
-            st.session_state.planes,
-            st.session_state.favoritos,
-        )
-    except Exception:
-        st.warning(
-            "No pudimos guardar tus favoritos. "
-            "Intentá nuevamente."
-        )
 
             try:
                 guardar_datos_firestore(
@@ -1050,12 +1039,12 @@ with crear:
                     "en tu cuenta. Revisá tu conexión e intentá nuevamente."
                 )
 
-
     plan = st.session_state.plan_actual
 
     if plan:
         st.markdown("---")
         st.markdown("## Tu plan está listo")
+
 
         st.markdown(
             f"### {plan['actividad']} en {plan['zona']}"
