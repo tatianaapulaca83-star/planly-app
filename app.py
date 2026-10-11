@@ -39,7 +39,7 @@ icono = CARPETA / FAVICON
 
 st.set_page_config(
     page_title="Planly | Tu próxima salida",
-    page_icon=str(icono) if icono.exists() else "💙",
+    page_icon=str(icono) if icono.exists() else "P",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -522,7 +522,7 @@ def crear_ruta(destino, transporte):
     return "https://www.google.com/maps/dir/?" + parametros
 
 def dinero(valor):
-    return "$" + f"{valor:,.0f}".replace(",", ".")
+    return "$"+ f"{valor:,.0f}".replace(",", ".")
 
 def guardar_favorito(nombre, zona, categoria):
     nombre = nombre.strip()
@@ -612,31 +612,31 @@ def consultar_clima(zona, fecha_salida):
         codigo = daily["weather_code"][0]
 
         descripciones = {
-            0: ("Despejado", "☀️"),
-            1: ("Mayormente despejado", "🌤️"),
-            2: ("Parcialmente nublado", "⛅"),
-            3: ("Nublado", "☁️"),
-            45: ("Niebla", "🌫️"),
-            48: ("Niebla", "🌫️"),
-            51: ("Llovizna leve", "🌦️"),
-            53: ("Llovizna", "🌦️"),
-            55: ("Llovizna intensa", "🌧️"),
-            61: ("Lluvia leve", "🌦️"),
-            63: ("Lluvia", "🌧️"),
-            65: ("Lluvia intensa", "🌧️"),
-            71: ("Nieve leve", "🌨️"),
-            73: ("Nieve", "🌨️"),
-            75: ("Nieve intensa", "❄️"),
-            80: ("Chaparrones leves", "🌦️"),
-            81: ("Chaparrones", "🌧️"),
-            82: ("Chaparrones intensos", "⛈️"),
-            95: ("Tormenta", "⛈️"),
-            96: ("Tormenta con granizo", "⛈️"),
-            99: ("Tormenta intensa", "⛈️"),
+            0: ("Despejado", ""),
+            1: ("Mayormente despejado", ""),
+            2: ("Parcialmente nublado", ""),
+            3: ("Nublado", ""),
+            45: ("Niebla", ""),
+            48: ("Niebla", ""),
+            51: ("Llovizna leve", ""),
+            53: ("Llovizna", ""),
+            55: ("Llovizna intensa", ""),
+            61: ("Lluvia leve", ""),
+            63: ("Lluvia", ""),
+            65: ("Lluvia intensa", ""),
+            71: ("Nieve leve", ""),
+            73: ("Nieve", ""),
+            75: ("Nieve intensa", ""),
+            80: ("Chaparrones leves", ""),
+            81: ("Chaparrones", ""),
+            82: ("Chaparrones intensos", ""),
+            95: ("Tormenta", ""),
+            96: ("Tormenta con granizo", ""),
+            99: ("Tormenta intensa", ""),
         }
 
         descripcion, emoji = descripciones.get(
-            codigo, ("Estado variable", "🌥️")
+            codigo, ("Estado variable", "")
         )
 
         lluvia = daily.get(
@@ -722,10 +722,10 @@ st.markdown("""
 # =========================================================
 
 inicio, explorar, crear, favoritos = st.tabs([
-    "🏠 Inicio",
-    "🧭 Explorar",
-    "✨ Crear un plan",
-    "💙 Favoritos",
+    "Inicio",
+    "Explorar",
+    "Crear un plan",
+    "Favoritos",
 ])
 
 # =========================================================
@@ -750,11 +750,11 @@ with inicio:
         st.markdown("""
         <div class="section-card">
             <h3>¿Qué tenés ganas de hacer?</h3>
-            <p>☕ Descubrir cafeterías y meriendas</p>
-            <p>🍦 Encontrar heladerías</p>
-            <p>🌳 Conocer parques y paseos</p>
-            <p>🎬 Buscar actividades para compartir</p>
-            <p>💸 Organizar gastos y alternativas</p>
+            <p> Descubrir cafeterías y meriendas</p>
+            <p> Encontrar heladerías</p>
+            <p> Conocer parques y paseos</p>
+            <p> Buscar actividades para compartir</p>
+            <p> Organizar gastos y alternativas</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -770,7 +770,7 @@ with inicio:
                 use_container_width=True,
             )
         else:
-            st.markdown("## ¡Hola! Soy MOMI 💙")
+            st.markdown("## ¡Hola! Soy MOMI ")
             st.write(
                 "Tu compañero para descubrir lugares y organizar salidas."
             )
@@ -866,7 +866,7 @@ with explorar:
         )
 
         st.link_button(
-            "📍 Ver resultados en Google Maps",
+            "Ver resultados en Google Maps",
             buscar_maps(busqueda["consulta"]),
             use_container_width=True,
         )
@@ -900,7 +900,7 @@ with explorar:
             )
 
             guardar = st.form_submit_button(
-                "♡ Guardar en favoritos",
+                "Guardar en favoritos",
                 use_container_width=True,
             )
 
@@ -940,7 +940,7 @@ with crear:
     )
 
     with st.form("form_plan"):
-        st.markdown("### 📍 Lugar y actividad")
+        st.markdown("###  Lugar y actividad")
 
         zona_plan = st.text_input(
             "Zona donde querés salir",
@@ -963,7 +963,7 @@ with crear:
             ["Mañana", "Mediodía", "Tarde", "Atardecer", "Noche"],
         )
 
-        st.markdown("### 👥 Grupo y presupuesto")
+        st.markdown("###  Grupo y presupuesto")
 
         personas_plan = st.number_input(
             "Cantidad de personas",
@@ -997,7 +997,7 @@ with crear:
             ),
         )
 
-        st.markdown("### 🚍 Transporte y preferencias")
+        st.markdown("###  Transporte y preferencias")
 
         transporte = st.selectbox(
             "¿Cómo se van a trasladar?",
@@ -1010,7 +1010,7 @@ with crear:
             default=["Económico"],
         )
 
-        st.markdown("### 🌦️ Clima")
+        st.markdown("###  Clima")
 
         ver_clima = st.checkbox(
             "Consultar el pronóstico para la fecha elegida",
@@ -1018,7 +1018,7 @@ with crear:
         )
 
         enviar_plan = st.form_submit_button(
-            "✨ Crear mi plan",
+            "Crear mi plan",
             type="primary",
             use_container_width=True,
         )
@@ -1130,7 +1130,7 @@ with crear:
             f"{plan['zona']}, Argentina"
         )
 
-        st.markdown("### 📍 Lugares y mapa")
+        st.markdown("###  Lugares y mapa")
 
         st.link_button(
             "Ver lugares para esta salida",
@@ -1158,7 +1158,7 @@ with crear:
         )
 
         if plan["ver_clima"]:
-            st.markdown("### 🌤️ Pronóstico del tiempo")
+            st.markdown("###  Pronóstico del tiempo")
 
             fecha_elegida = date.fromisoformat(plan["fecha"])
             dias = (fecha_elegida - date.today()).days
@@ -1175,7 +1175,7 @@ with crear:
 
                     cc1.metric(
                         "Estado",
-                        clima["emoji"] + " " + clima["descripcion"],
+                        clima["emoji"] + ""+ clima["descripcion"],
                     )
 
                     cc2.metric(
@@ -1206,7 +1206,7 @@ with crear:
                     "cuando el servicio tiene datos disponibles."
                 )
 
-        st.markdown("### ☂️ Tu plan alternativo")
+        st.markdown("###  Tu plan alternativo")
 
         if plan["actividad"] in [
             "Pasear",
@@ -1241,10 +1241,10 @@ with crear:
             use_container_width=True,
         )
 
-        st.markdown("### 💙 Guardar tu idea")
+        st.markdown("###  Guardar tu idea")
 
         if st.button(
-            "♡ Guardar este plan en favoritos",
+            "Guardar este plan en favoritos",
             use_container_width=True,
             key="guardar_plan",
         ):
@@ -1266,7 +1266,7 @@ with crear:
 # =========================================================
 
 with favoritos:
-    st.markdown("## Tus favoritos 💙")
+    st.markdown("## Tus favoritos ")
 
     st.write(
         "Acá encontrás los lugares y las ideas que guardaste."
@@ -1298,7 +1298,7 @@ with favoritos:
                     )
 
                     st.link_button(
-                        "📍 Ver en Google Maps",
+                        "Ver en Google Maps",
                         favorito["url"],
                     )
 
@@ -1356,7 +1356,7 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align:center; padding:12px;">
     <p style="color:#64748B;">
-        PLANLY · Encontrá tu próxima aventura 💙
+        PLANLY · Encontrá tu próxima aventura 
     </p>
 </div>
 """, unsafe_allow_html=True)
