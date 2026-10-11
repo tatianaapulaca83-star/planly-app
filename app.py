@@ -50,8 +50,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap');
 :root {
     --azul: #2563EB;
     --azul-oscuro: #173B7A;
@@ -114,8 +113,34 @@ h1, h2, h3 {
     font-size: 0.88rem;
 }
 
+.stApp {
+    font-family: 'Nunito', sans-serif;
+}
+
+div[data-testid="stTabs"] [data-baseweb="tab-list"] {
+    background: #EAF2FF;
+    border: 1px solid #DCE6F8;
+    border-radius: 0 0 18px 18px;
+    padding: 8px 12px;
+    gap: 8px;
+}
+
 div[data-testid="stTabs"] button {
-    font-weight: 600;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: #536783;
+    border-radius: 10px 10px 14px 14px;
+    padding: 10px 16px;
+    transition: all 0.2s ease;
+}
+
+div[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #2563EB;
+    background: #FFFFFF;
+}
+
+div[data-testid="stTabs"] button:hover {
+    color: #2563EB;
 }
 
 .stButton > button,
