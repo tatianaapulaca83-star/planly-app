@@ -171,7 +171,8 @@ def autenticar_firebase(modo, email, password):
         "registro": "signUp",
         "login": "signInWithPassword",
     }
-
+except requests.RequestException:
+    return False, "No pudimos conectar con Firebase. Intentá nuevamente."
     url = (
         f"{URL_AUTH}:{endpoints[modo]}"
         f"?key={FIREBASE_API_KEY}"
@@ -302,6 +303,88 @@ if not st.session_state.firebase_user:
                     st.error(mensaje)
 
     st.stop()
+
+# =========================================================
+# GUARDADO DE PLANES Y FAVORITOS EN FIRESTORE
+# =========================================================
+
+import json
+
+
+def obtener_url_firestore():
+    usuario = st.session_state.firebase_user
+    uid = usuario["uid"]
+
+    return (
+        "https://firestore.googleapis.com/v1/projects/"
+        f"{FIREBASE_PROJECT_ID}/databases/(default)/documents/"
+        f"users/{uid}/data/app"
+    )
+
+
+def cargar_datos_firestore():
+    usuario = st.session_state.firebase_user
+
+    respuesta = requests.get(
+        obtener_url_firestore(),
+        headers={
+            "Authorization": f"Bearer {usuario['id_token']}"
+        },
+        timeout=15,
+    )
+
+    # Si todavía no hay documento, empezamos con listas vacías.
+    if respuesta.status_code == 404:
+        return [], []
+
+    respuesta.raise_for_status()
+
+    campos = respuesta.json().get("fields", {})
+
+    planes = json.loads(
+        campos.get("planes_json", {}).get("stringValue", "[]")
+    )
+
+    favoritos = json.loads(
+        campos.get("favoritos_json", {}).get("stringValue", "[]")
+    )
+
+    return planes, favoritos
+
+
+def guardar_datos_firestore(planes, favoritos):
+    usuario = st.session_state.firebase_user
+
+    datos = {
+        "fields": {
+            "planes_json": {
+                "stringValue": json.dumps(
+                    planes, ensure_ascii=False
+                )
+            },
+            "favoritos_json": {
+                "stringValue": json.dumps(
+                    favoritos, ensure_ascii=False
+                )
+            },
+        }
+    }
+
+    respuesta = requests.patch(
+        obtener_url_firestore(),
+        params=[
+            ("updateMask.fieldPaths", "planes_json"),
+            ("updateMask.fieldPaths", "favoritos_json"),
+        ],
+        headers={
+            "Authorization": f"Bearer {usuario['id_token']}",
+            "Content-Type": "application/json",
+        },
+        json=datos,
+        timeout=15,
+    )
+
+    respuesta.raise_for_status()
 
 # =========================================================
 # 3. CATEGORÍAS Y OPCIONES
