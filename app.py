@@ -50,7 +50,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700;800;900&display=swap');
 
 :root {
     --azul: #4777D8;
@@ -66,22 +66,22 @@ st.markdown("""
 .stApp {
     background: var(--fondo);
     color: var(--texto);
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Rockwell', 'Roboto Slab', serif;
 }
 
 h1, h2, h3, h4 {
-    font-family: 'Manrope', sans-serif !important;
+    font-family: 'Rockwell', 'Roboto Slab', serif !important;
     color: var(--azul-oscuro);
     letter-spacing: -0.7px;
 }
 
 .hero h1 {
-    font-family: 'Playfair Display', serif !important;
+    font-family: 'Rockwell', 'Roboto Slab', serif !important;
     letter-spacing: 2px;
 }
 
 p, label, input, textarea, button, select, [data-testid="stMarkdownContainer"], [data-baseweb="select"] {
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Rockwell', 'Roboto Slab', serif !important;
 }
 
 .block-container {
@@ -143,7 +143,7 @@ div[data-testid="stTabs"] [data-baseweb="tab-list"] {
 }
 
 div[data-testid="stTabs"] button {
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Rockwell', 'Roboto Slab', serif !important;
     font-size: 0.96rem;
     font-weight: 800;
     color: #536783;
@@ -173,7 +173,7 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
 .stLinkButton > a,
 .stFormSubmitButton > button {
     border-radius: 13px;
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Rockwell', 'Roboto Slab', serif !important;
     font-weight: 800;
     min-height: 48px;
     border: 1px solid #D5E2F8;
