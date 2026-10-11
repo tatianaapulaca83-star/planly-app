@@ -1,5 +1,4 @@
-
-import streamlit as st
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
 from pathlib import Path
 
 # ==========================================
@@ -46,52 +45,103 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-.stApp {
-    background: linear-gradient(
-        135deg, #fff7fa 0%, #f6f2ff 55%, #eff9f5 100%
-    );
-    color: #39364f;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+    --azul: #2563EB;
+    --azul-oscuro: #1D4ED8;
+    --azul-claro: #EFF6FF;
+    --borde: #DBEAFE;
+    --texto: #334155;
 }
+
+.stApp {
+    background: #F8FAFF;
+    color: var(--texto);
+}
+
 .block-container {
     max-width: 1150px;
     padding-top: 2rem;
     padding-bottom: 3rem;
 }
-h1, h2, h3 {
-    color: #63527e !important;
+
+h1 {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    color: var(--azul-oscuro) !important;
 }
+
+h2, h3 {
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 600 !important;
+    color: var(--azul-oscuro) !important;
+}
+
+p, label, li, button, input {
+    font-family: 'Poppins', sans-serif;
+}
+
 [data-testid="stSidebar"] {
-    background-color: #f5effb;
+    background: var(--azul-claro);
+    border-right: 1px solid var(--borde);
 }
-div.stButton > button {
-    border-radius: 14px;
-    border: 1px solid #e6d9f3;
-    min-height: 42px;
-    transition: 0.2s;
+
+div.stButton > button,
+div.stFormSubmitButton > button {
+    background: var(--azul);
+    color: white;
+    border: 1px solid var(--azul);
+    border-radius: 12px;
+    min-height: 44px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
 }
-div.stButton > button:hover {
-    border-color: #bda5d9;
-    color: #63527e;
+
+div.stButton > button:hover,
+div.stFormSubmitButton > button:hover {
+    background: var(--azul-oscuro);
+    color: white;
+    border-color: var(--azul-oscuro);
 }
+
 div[data-testid="stForm"] {
-    background: rgba(255,255,255,0.75);
-    border: 1px solid #eadff3;
-    border-radius: 20px;
-    padding: 22px;
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    padding: 24px;
 }
+
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    border-color: var(--borde);
+    border-radius: 16px;
+}
+
+.stTabs [aria-selected="true"] {
+    color: var(--azul) !important;
+}
+
+.stTabs [data-baseweb="tab-highlight"] {
+    background: var(--azul) !important;
+}
+
 .plan-card {
-    background: rgba(255,255,255,0.8);
-    border: 1px solid #e9dff2;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 12px;
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 14px;
 }
-.small-note {
-    color: #777087;
-    font-size: 0.9rem;
+
+footer {
+    visibility: hidden;
 }
 </style>
 """, unsafe_allow_html=True)
+
+
 
 # ==========================================
 # FUNCIONES AUXILIARES
