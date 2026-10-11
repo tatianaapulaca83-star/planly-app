@@ -1,10 +1,25 @@
-
 import streamlit as st
 
-st.set_page_config(
+st.set_page_config(st.image("1791589153613.jpg", width=220)
+
+st.title("Planly")
+st.subheader("Tus planes, a tu manera")
+
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    st.write(
+        "¡Hola! Soy MOMI y te ayudo a organizar "
+        "salidas para crear momentos especiales. 💗"
+    )
+
+with col2:
+    st.image("IMG_20261011_113224.png", width=180)
+
+st.divider()
     page_title="Planly",
-    page_icon="🦦",
-    layout="centered"
+    page_icon="file_00000000ae90820eab984a0a71702a6d.png",
+    layout="wide"
 )
 
 st.markdown("""
