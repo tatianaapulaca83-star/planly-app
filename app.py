@@ -1,3 +1,4 @@
+
 import streamlit as st
 
 st.set_page_config(
@@ -6,50 +7,132 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🦦 Planly")
-st.subheader("¡Armemos un plan genial!")
-st.write("Hola, soy MOMI. Te ayudo a organizar tu próxima salida 💗")
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(
+        135deg, #fff5f8 0%, #f7f3ff 55%, #effaf5 100%
+    );
+    color: #39365f;
+}
+.block-container {
+    max-width: 760px;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+h1, h2, h3 {
+    color: #514477 !important;
+}
+.intro {
+    background: rgba(255,255,255,0.82);
+    border: 1px solid #eee3ff;
+    border-radius: 24px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 5px 20px #51447710;
+}
+.momi {
+    font-size: 68px;
+    margin-bottom: 0;
+}
+.subtitle {
+    color: #75658f;
+    font-size: 18px;
+}
+div[data-testid="stForm"] {
+    background: rgba(255,255,255,0.88);
+    border: 1px solid #eadfff;
+    border-radius: 22px;
+    padding: 22px;
+}
+.stButton > button {
+    background: linear-gradient(90deg, #bca0e8, #d6b5e8);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    min-height: 48px;
+    font-weight: 600;
+}
+.stButton > button:hover {
+    border: 1px solid #9d7dd4;
+    color: #514477;
+}
+div[data-baseweb="input"],
+div[data-baseweb="select"] {
+    border-radius: 12px;
+}
+.footer {
+    text-align: center;
+    color: #8877a4;
+    font-size: 14px;
+    padding-top: 22px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-st.divider()
+st.markdown("""
+<div class="intro">
+    <div class="momi">🦦🗺️</div>
+    <h1>Planly</h1>
+    <div class="subtitle">Tus planes, a tu manera 💗</div>
+    <p>¡Hola! Soy MOMI. Te ayudo a organizar tu próxima salida.</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.write("")
 
 st.header("✨ Creemos tu plan")
+st.write("Contame qué tienen ganas de hacer y armamos una salida.")
 
-zona = st.text_input(
-    "📍 ¿En qué zona quieren salir?",
-    placeholder="Ejemplo: Lanús"
-)
+with st.form("formulario_plan"):
+    zona = st.text_input(
+        "📍 ¿En qué zona quieren salir?",
+        placeholder="Ejemplo: Lanús"
+    )
 
-actividad = st.selectbox(
-    "🎉 ¿Qué quieren hacer?",
-    ["Merendar", "Comer", "Tomar helado", "Pasear"]
-)
+    actividad = st.selectbox(
+        "🎉 ¿Qué quieren hacer?",
+        ["Merendar", "Comer", "Tomar helado", "Pasear"]
+    )
 
-presupuesto = st.number_input(
-    "💰 ¿Cuánto quieren gastar en total?",
-    min_value=0,
-    value=10000,
-    step=1000
-)
+    presupuesto = st.number_input(
+        "💰 ¿Cuánto quieren gastar en total?",
+        min_value=0,
+        value=10000,
+        step=1000
+    )
 
-personas = st.number_input(
-    "👥 ¿Cuántas personas son?",
-    min_value=1,
-    value=2,
-    step=1
-)
+    personas = st.number_input(
+        "👥 ¿Cuántas personas son?",
+        min_value=1,
+        value=2,
+        step=1
+    )
 
-if st.button("🔎 Buscar mi plan", use_container_width=True):
+    buscar = st.form_submit_button(
+        "🔎 Buscar mi plan",
+        use_container_width=True
+    )
+
+if buscar:
     if not zona.strip():
-        st.warning("¡MOMI necesita saber en qué zona buscar!")
+        st.warning("¡MOMI necesita saber en qué zona buscar! 🦦")
     else:
-        st.success("¡Vamos a organizar tu salida!")
-        st.write("📍 Zona:", zona)
-        st.write("🎉 Actividad:", actividad)
-        st.write("💰 Presupuesto total:", f"${presupuesto:,.0f}")
-        st.write("👥 Personas:", personas)
+        st.success("¡Ya tenemos los datos de tu salida! 💗")
+
+        st.subheader("🌷 Tu plan")
+        st.write(f"📍 **Zona:** {zona.strip()}")
+        st.write(f"🎉 **Actividad:** {actividad}")
+        st.write(f"💰 **Presupuesto total:** ${presupuesto:,.0f}")
+        st.write(f"👥 **Personas:** {personas}")
+
         st.info(
-            "Esta es la primera versión de Planly. "
-            "El siguiente paso será conectar lugares reales."
+            "MOMI está preparando nuevas formas de encontrar "
+            "lugares para vos. Próximamente conectaremos lugares reales."
         )
 
-st.caption("Planly 💗 Creá momentos que valgan la pena.")
+st.markdown("""
+<div class="footer">
+    Planly 💗 Creá momentos que valgan la pena.
+</div>
+""", unsafe_allow_html=True)
