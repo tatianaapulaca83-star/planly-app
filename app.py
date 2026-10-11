@@ -50,62 +50,71 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap');
+
 :root {
     --azul: #2563EB;
     --azul-oscuro: #173B7A;
-    --celeste: #EFF6FF;
-    --fondo: #F8FAFF;
+    --celeste: #EAF2FF;
+    --fondo: #F7F9FE;
     --texto: #263650;
     --suave: #64748B;
     --borde: #DCE6F8;
+    --blanco: #FFFFFF;
 }
 
 .stApp {
     background: var(--fondo);
     color: var(--texto);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Nunito', sans-serif;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
     font-family: 'Montserrat', sans-serif !important;
     color: var(--azul-oscuro);
+    letter-spacing: -0.35px;
+}
+
+p, label, input, textarea, button, [data-testid="stMarkdownContainer"] {
+    font-family: 'Nunito', sans-serif;
 }
 
 .block-container {
     max-width: 1180px;
-    padding-top: 1.6rem;
+    padding-top: 1.5rem;
     padding-bottom: 3rem;
 }
 
 .hero {
-    background: linear-gradient(135deg, #EAF2FF, #FFFFFF);
+    background: linear-gradient(125deg, #E5EEFF 0%, #FFFFFF 68%, #F0F7FF 100%);
     border: 1px solid var(--borde);
-    border-radius: 28px;
-    padding: 32px;
-    margin-bottom: 25px;
+    border-radius: 26px;
+    padding: clamp(22px, 4vw, 36px);
+    margin-bottom: 24px;
+    box-shadow: 0 8px 26px rgba(37, 99, 235, 0.06);
 }
 
 .hero h1 {
-    font-size: clamp(2.5rem, 6vw, 4.2rem);
-    letter-spacing: 4px;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    letter-spacing: 3px;
     font-weight: 800;
-    margin: 0;
+    margin: 0 0 6px 0;
     color: var(--azul-oscuro);
 }
 
 .hero p {
     color: #536783;
     font-size: 1rem;
-    margin-bottom: 0;
+    margin: 3px 0 0 0;
 }
 
 .section-card {
-    background: white;
+    background: var(--blanco);
     border: 1px solid var(--borde);
     border-radius: 20px;
     padding: 22px;
     margin-bottom: 16px;
+    box-shadow: 0 5px 18px rgba(23, 59, 122, 0.04);
 }
 
 .small-note {
@@ -113,59 +122,125 @@ h1, h2, h3 {
     font-size: 0.88rem;
 }
 
-.stApp {
-    font-family: 'Nunito', sans-serif;
+/* Barra de navegación fina y redondeada */
+div[data-testid="stTabs"] {
+    margin-top: 8px;
 }
 
 div[data-testid="stTabs"] [data-baseweb="tab-list"] {
     background: #EAF2FF;
     border: 1px solid #DCE6F8;
     border-radius: 0 0 18px 18px;
-    padding: 8px 12px;
-    gap: 8px;
+    padding: 7px 9px;
+    gap: 5px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.05);
 }
 
 div[data-testid="stTabs"] button {
     font-family: 'Nunito', sans-serif;
-    font-weight: 700;
+    font-size: 0.96rem;
+    font-weight: 800;
     color: #536783;
-    border-radius: 10px 10px 14px 14px;
-    padding: 10px 16px;
-    transition: all 0.2s ease;
+    border-radius: 9px 9px 13px 13px;
+    padding: 9px 16px;
+    border-bottom: 3px solid transparent;
+    transition: background 0.18s ease, color 0.18s ease;
 }
 
 div[data-testid="stTabs"] button[aria-selected="true"] {
-    color: #2563EB;
+    color: var(--azul);
     background: #FFFFFF;
+    border-bottom-color: var(--azul);
 }
 
 div[data-testid="stTabs"] button:hover {
-    color: #2563EB;
+    color: var(--azul);
+    background: rgba(255, 255, 255, 0.75);
 }
 
+div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+    background: transparent;
+}
+
+/* Botones */
 .stButton > button,
 .stLinkButton > a,
 .stFormSubmitButton > button {
-    border-radius: 12px;
-    font-weight: 600;
-    min-height: 43px;
+    border-radius: 13px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    min-height: 44px;
+    border: 1px solid #D5E2F8;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.stButton > button:hover,
+.stLinkButton > a:hover,
+.stFormSubmitButton > button:hover {
+    border-color: #8FB3F5;
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.10);
+    transform: translateY(-1px);
 }
 
 .stButton > button[kind="primary"],
 .stFormSubmitButton > button[kind="primary"] {
     background: var(--azul);
     border-color: var(--azul);
+    color: #FFFFFF;
+}
+
+.stButton > button[kind="primary"]:hover,
+.stFormSubmitButton > button[kind="primary"]:hover {
+    background: #1D4ED8;
+    border-color: #1D4ED8;
+}
+
+/* Campos y selectores */
+div[data-baseweb="input"] > div,
+div[data-baseweb="textarea"] > div,
+div[data-baseweb="select"] > div {
+    border-radius: 12px;
+    border-color: #D7E2F3;
+    background: #FFFFFF;
+}
+
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="textarea"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within {
+    border-color: #6D9EF0;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.10);
+}
+
+div[data-testid="stNumberInput"] button {
+    border-radius: 9px;
+    color: var(--azul);
 }
 
 div[data-testid="stMetric"] {
-    background: white;
+    background: #FFFFFF;
     border: 1px solid var(--borde);
-    border-radius: 16px;
-    padding: 14px;
+    border-radius: 17px;
+    padding: 15px 17px;
+    box-shadow: 0 4px 15px rgba(23, 59, 122, 0.035);
 }
 
 div[data-testid="stAlert"] {
     border-radius: 14px;
+}
+
+div[data-testid="stExpander"] details {
+    background: #FFFFFF;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+}
+
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    border-color: var(--borde);
+    border-radius: 17px;
+}
+
+img {
+    border-radius: 16px;
 }
 
 hr {
@@ -174,6 +249,24 @@ hr {
 
 footer {
     visibility: hidden;
+}
+
+@media (max-width: 700px) {
+    .block-container {
+        padding-top: 0.8rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    div[data-testid="stTabs"] [data-baseweb="tab-list"] {
+        gap: 2px;
+        padding: 5px;
+    }
+
+    div[data-testid="stTabs"] button {
+        padding: 8px 9px;
+        font-size: 0.86rem;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -544,6 +637,18 @@ def guardar_favorito(nombre, zona, categoria):
         "categoria": categoria,
         "url": buscar_maps(f"{nombre}, {zona}"),
     })
+
+    try:
+        guardar_datos_firestore(
+            st.session_state.planes,
+            st.session_state.favoritos,
+        )
+    except Exception:
+        st.warning(
+            "El favorito quedó en esta sesión, pero no pudimos sincronizarlo "
+            "con tu cuenta. Revisá tu conexión e intentá nuevamente."
+        )
+
     return True
 
 # =========================================================
@@ -836,6 +941,16 @@ with explorar:
             list(CATEGORIAS.keys()),
         )
 
+        presupuesto_explorar = st.selectbox(
+            "¿Qué presupuesto tenés en mente?",
+            [
+                "Cualquier presupuesto",
+                "Gratis o muy económico",
+                "Económico",
+                "Intermedio",
+            ],
+        )
+
         buscar = st.form_submit_button(
             "Buscar lugares",
             type="primary",
@@ -849,9 +964,19 @@ with explorar:
             st.session_state.busqueda_actual = {
                 "zona": zona_explorar.strip(),
                 "categoria": categoria_explorar,
+                "presupuesto": presupuesto_explorar,
                 "consulta": (
                     f"{CATEGORIAS[categoria_explorar]}, "
-                    f"{zona_explorar.strip()}, Argentina"
+                    + (
+                        "gratis o económico, "
+                        if presupuesto_explorar == "Gratis o muy económico"
+                        else "económico, "
+                        if presupuesto_explorar == "Económico"
+                        else "precio moderado, "
+                        if presupuesto_explorar == "Intermedio"
+                        else ""
+                    )
+                    + f"{zona_explorar.strip()}, Argentina"
                 ),
             }
 
@@ -864,6 +989,11 @@ with explorar:
             f"Buscando **{busqueda['categoria'].lower()}** en "
             f"**{busqueda['zona']}**."
         )
+        if busqueda.get("presupuesto", "Cualquier presupuesto") != "Cualquier presupuesto":
+            st.caption(
+                f"Preferencia de presupuesto: {busqueda['presupuesto']}. "
+                "Es una orientación para la búsqueda; verificá los precios con cada lugar."
+            )
 
         st.link_button(
             "Ver resultados en Google Maps",
@@ -1175,7 +1305,7 @@ with crear:
 
                     cc1.metric(
                         "Estado",
-                        clima["emoji"] + ""+ clima["descripcion"],
+                        clima["descripcion"],
                     )
 
                     cc2.metric(
@@ -1308,6 +1438,16 @@ with favoritos:
                         key=f"quitar_favorito_{i}",
                     ):
                         st.session_state.favoritos.pop(i)
+                        try:
+                            guardar_datos_firestore(
+                                st.session_state.planes,
+                                st.session_state.favoritos,
+                            )
+                        except Exception:
+                            st.warning(
+                                "Se quitó de esta sesión, pero no pudimos "
+                                "sincronizar el cambio con tu cuenta."
+                            )
                         st.rerun()
 
     st.markdown("---")
