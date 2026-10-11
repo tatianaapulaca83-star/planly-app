@@ -1809,13 +1809,8 @@ with crear:
             json.dumps(datos_para_compartir, ensure_ascii=False).encode("utf-8")
         ).decode("ascii")
         url_compartir = "https://aplicacinplanly-fzdgevludiwfnrmkruamjo.streamlit.app/?plan_compartido=" + quote(codigo_compartir, safe="")
-        st.text_input(
-            "Vínculo para compartir",
-            value=url_compartir,
-            help="Copiá el vínculo completo y mandáselo a quien quieras.",
-            key="vinculo_plan_compartido",
-        )
-        st.caption("El enlace comparte una copia de los datos actuales; si editás el plan después, generá un vínculo nuevo.")
+        st.code(url_compartir, language=None)
+        st.caption("Usá el botón de copiar del recuadro para copiar el vínculo y mandárselo a tu amiga. El enlace comparte una copia de los datos actuales; si editás el plan después, generá un vínculo nuevo.")
 
         st.markdown("###  Guardar tu idea")
 
