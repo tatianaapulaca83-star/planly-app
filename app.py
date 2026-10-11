@@ -249,6 +249,13 @@ img {
     border-radius: 16px;
 }
 
+iframe {
+    border: 1px solid #DCE5F5 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 28px rgba(42, 69, 126, 0.10);
+    overflow: hidden;
+}
+
 hr {
     border-color: var(--borde);
 }
