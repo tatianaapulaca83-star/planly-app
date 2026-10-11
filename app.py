@@ -50,29 +50,29 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
 
 :root {
-    --azul: #2563EB;
-    --azul-oscuro: #173B7A;
-    --celeste: #EAF2FF;
-    --fondo: #F7F9FE;
+    --azul: #4777D8;
+    --azul-oscuro: #263F73;
+    --celeste: #E8EEFF;
+    --fondo: #F5F7FC;
     --texto: #263650;
     --suave: #64748B;
-    --borde: #DCE6F8;
+    --borde: #E0E6F3;
     --blanco: #FFFFFF;
 }
 
 .stApp {
     background: var(--fondo);
     color: var(--texto);
-    font-family: 'Nunito', sans-serif;
+    font-family: 'DM Sans', sans-serif;
 }
 
 h1, h2, h3, h4 {
-    font-family: 'Montserrat', sans-serif !important;
+    font-family: 'Manrope', sans-serif !important;
     color: var(--azul-oscuro);
-    letter-spacing: -0.35px;
+    letter-spacing: -0.7px;
 }
 
 p, label, input, textarea, button, [data-testid="stMarkdownContainer"] {
@@ -86,35 +86,36 @@ p, label, input, textarea, button, [data-testid="stMarkdownContainer"] {
 }
 
 .hero {
-    background: linear-gradient(125deg, #E5EEFF 0%, #FFFFFF 68%, #F0F7FF 100%);
+    background: radial-gradient(circle at 88% 18%, rgba(214, 226, 255, .85), transparent 32%), linear-gradient(125deg, #E9EEFF 0%, #FFFFFF 58%, #F3F7FF 100%);
     border: 1px solid var(--borde);
-    border-radius: 26px;
-    padding: clamp(22px, 4vw, 36px);
+    border-radius: 30px;
+    padding: clamp(25px, 4.5vw, 44px);
     margin-bottom: 24px;
-    box-shadow: 0 8px 26px rgba(37, 99, 235, 0.06);
+    box-shadow: 0 16px 42px rgba(42, 69, 126, 0.09);
 }
 
 .hero h1 {
-    font-size: clamp(2.4rem, 6vw, 4rem);
-    letter-spacing: 3px;
+    font-size: clamp(2.7rem, 6.5vw, 4.6rem);
+    letter-spacing: 5px;
     font-weight: 800;
-    margin: 0 0 6px 0;
+    margin: 0 0 10px 0;
     color: var(--azul-oscuro);
 }
 
 .hero p {
     color: #536783;
-    font-size: 1rem;
-    margin: 3px 0 0 0;
+    font-size: 1.06rem;
+    line-height: 1.75;
+    margin: 5px 0 0 0;
 }
 
 .section-card {
     background: var(--blanco);
     border: 1px solid var(--borde);
-    border-radius: 20px;
-    padding: 22px;
+    border-radius: 24px;
+    padding: 25px;
     margin-bottom: 16px;
-    box-shadow: 0 5px 18px rgba(23, 59, 122, 0.04);
+    box-shadow: 0 9px 28px rgba(35, 61, 112, 0.055);
 }
 
 .small-note {
@@ -122,18 +123,18 @@ p, label, input, textarea, button, [data-testid="stMarkdownContainer"] {
     font-size: 0.88rem;
 }
 
-/* Barra de navegación fina y redondeada */
+/* Navegación elegante y adaptada a móvil */
 div[data-testid="stTabs"] {
     margin-top: 8px;
 }
 
 div[data-testid="stTabs"] [data-baseweb="tab-list"] {
-    background: #EAF2FF;
-    border: 1px solid #DCE6F8;
-    border-radius: 0 0 18px 18px;
+    background: rgba(232, 238, 255, .94);
+    border: 1px solid #DCE4F5;
+    border-radius: 18px;
     padding: 7px 9px;
     gap: 5px;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.05);
+    box-shadow: 0 8px 22px rgba(37, 66, 125, 0.07);
 }
 
 div[data-testid="stTabs"] button {
@@ -141,8 +142,8 @@ div[data-testid="stTabs"] button {
     font-size: 0.96rem;
     font-weight: 800;
     color: #536783;
-    border-radius: 9px 9px 13px 13px;
-    padding: 9px 16px;
+    border-radius: 13px;
+    padding: 11px 18px;
     border-bottom: 3px solid transparent;
     transition: background 0.18s ease, color 0.18s ease;
 }
@@ -169,7 +170,7 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
     border-radius: 13px;
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
-    min-height: 44px;
+    min-height: 48px;
     border: 1px solid #D5E2F8;
     transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
@@ -219,8 +220,8 @@ div[data-testid="stNumberInput"] button {
 div[data-testid="stMetric"] {
     background: #FFFFFF;
     border: 1px solid var(--borde);
-    border-radius: 17px;
-    padding: 15px 17px;
+    border-radius: 20px;
+    padding: 17px 19px;
     box-shadow: 0 4px 15px rgba(23, 59, 122, 0.035);
 }
 
@@ -258,14 +259,28 @@ footer {
         padding-right: 1rem;
     }
 
+    div[data-testid="stTabs"] {
+        position: sticky;
+        bottom: 8px;
+        z-index: 999;
+        margin-top: 16px;
+        padding-top: 8px;
+        background: transparent;
+    }
+
     div[data-testid="stTabs"] [data-baseweb="tab-list"] {
         gap: 2px;
-        padding: 5px;
+        padding: 6px;
+        border-radius: 20px;
+        background: rgba(232, 238, 255, .97);
+        box-shadow: 0 8px 28px rgba(35, 61, 112, .15);
+        backdrop-filter: blur(12px);
     }
 
     div[data-testid="stTabs"] button {
-        padding: 8px 9px;
-        font-size: 0.86rem;
+        padding: 10px 5px;
+        font-size: 0.78rem;
+        min-height: 42px;
     }
 }
 </style>
@@ -590,6 +605,14 @@ PREFERENCIAS = [
 def archivo(nombre):
     return CARPETA / nombre
 
+
+def mostrar_momi(indice=0, ancho=None):
+    """Muestra una pose de Momi para acompañar cada sección."""
+    poses = [nombre for nombre in IMAGENES_EXTRA if archivo(nombre).exists()]
+    imagen = archivo(poses[indice % len(poses)]) if poses else archivo(MOMI)
+    if imagen.exists():
+        st.image(str(imagen), use_container_width=True)
+
 def buscar_maps(consulta):
     parametros = urlencode({
         "api": "1",
@@ -904,31 +927,19 @@ with inicio:
         with st.expander("Ver video de Planly"):
             st.video(str(archivo(VIDEO)))
 
-    disponibles = [
-        nombre for nombre in IMAGENES_EXTRA
-        if archivo(nombre).exists()
-    ]
-
-    if disponibles:
-        with st.expander("Ver galería de imágenes de Planly"):
-            columnas = st.columns(3)
-
-            for i, nombre in enumerate(disponibles):
-                with columnas[i % 3]:
-                    st.image(
-                        str(archivo(nombre)),
-                        use_container_width=True,
-                    )
 
 # =========================================================
 # 9. EXPLORAR
 # =========================================================
 
 with explorar:
-    st.markdown("## Explorá lugares")
-    st.write(
-        "Buscá sitios reales según la zona y la actividad que prefieras."
-    )
+    intro_explorar, momi_explorar = st.columns([1.7, 1], gap="large", vertical_alignment="center")
+    with intro_explorar:
+        st.markdown("## Explorá lugares")
+        st.write("Encontrá un rincón nuevo para merendar, pasear o compartir algo lindo.")
+    with momi_explorar:
+        mostrar_momi(2)
+    st.markdown("### ¿Qué te gustaría descubrir?")
 
     with st.form("form_explorar"):
         zona_explorar = st.text_input(
@@ -1062,15 +1073,15 @@ with explorar:
 # =========================================================
 
 with crear:
-    st.markdown("## Creá una salida a tu manera")
-
-    st.write(
-        "Completá tus preferencias para organizar una salida "
-        "con un presupuesto estimado y opciones alternativas."
-    )
+    intro_plan, momi_plan = st.columns([1.65, 1], gap="large", vertical_alignment="center")
+    with intro_plan:
+        st.markdown("## Armemos algo lindo")
+        st.write("Contale a Planly qué tenés ganas de hacer. Momi te acompaña a organizar la salida, el presupuesto y un plan alternativo.")
+    with momi_plan:
+        mostrar_momi(5)
 
     with st.form("form_plan"):
-        st.markdown("###  Lugar y actividad")
+        st.markdown("### Empecemos por la idea")
 
         zona_plan = st.text_input(
             "Zona donde querés salir",
@@ -1093,7 +1104,7 @@ with crear:
             ["Mañana", "Mediodía", "Tarde", "Atardecer", "Noche"],
         )
 
-        st.markdown("###  Grupo y presupuesto")
+        st.markdown("### Tu grupo y tu presupuesto")
 
         personas_plan = st.number_input(
             "Cantidad de personas",
@@ -1127,7 +1138,7 @@ with crear:
             ),
         )
 
-        st.markdown("###  Transporte y preferencias")
+        st.markdown("### Cómo quieren salir")
 
         transporte = st.selectbox(
             "¿Cómo se van a trasladar?",
@@ -1140,7 +1151,7 @@ with crear:
             default=["Económico"],
         )
 
-        st.markdown("###  Clima")
+        st.markdown("### Revisemos el clima")
 
         ver_clima = st.checkbox(
             "Consultar el pronóstico para la fecha elegida",
@@ -1415,12 +1426,16 @@ with favoritos:
     )
 
     if not st.session_state.favoritos:
-        st.markdown("""
+        vacio_texto, vacio_momi = st.columns([1.7, 1], gap="large", vertical_alignment="center")
+        with vacio_texto:
+            st.markdown("""
         <div class="section-card">
             <h3>Tu lista está esperando nuevas ideas</h3>
             <p>Entrá en «Explorar» y guardá los lugares que te gusten.</p>
         </div>
         """, unsafe_allow_html=True)
+        with vacio_momi:
+            mostrar_momi(8)
 
     else:
         st.caption(
