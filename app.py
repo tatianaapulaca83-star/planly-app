@@ -1027,6 +1027,18 @@ with crear:
             st.session_state.planes.append(nuevo_plan)
             st.session_state.plan_actual = nuevo_plan
             
+            
+    try:
+        guardar_datos_firestore(
+            st.session_state.planes,
+            st.session_state.favoritos,
+        )
+    except Exception:
+        st.warning(
+            "No pudimos guardar tus favoritos. "
+            "Intentá nuevamente."
+        )
+
             try:
                 guardar_datos_firestore(
                     st.session_state.planes,
