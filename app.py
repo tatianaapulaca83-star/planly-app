@@ -2,7 +2,7 @@
 import streamlit as st
 from pathlib import Path
 from datetime import date, timedelta
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from urllib.request import urlopen
 from urllib.error import URLError
 import json
@@ -648,6 +648,20 @@ def buscar_maps(consulta):
     })
     return "https://www.google.com/maps/search/?" + parametros
 
+@st.cache_data(ttl=86400, show_spinner=False)
+def obtener_foto_turistica(titulo):
+    """Obtiene una miniatura real del lugar desde Wikipedia, si está disponible."""
+    try:
+        url = "https://es.wikipedia.org/api/rest_v1/page/summary/" + quote(titulo.replace(" ", "_"), safe="")
+        respuesta = requests.get(url, timeout=6)
+        if respuesta.ok:
+            datos = respuesta.json()
+            return datos.get("thumbnail", {}).get("source")
+    except (requests.RequestException, ValueError):
+        pass
+    return None
+
+
 def crear_ruta(destino, transporte):
     modos = {
         "Caminando": "walking",
@@ -867,11 +881,12 @@ if (
 
 st.markdown("""
 <div class="hero">
-    <h1>PLANLY</h1>
-    <p>Encontrá tu próximo lugar favorito.</p>
+    <p style="font-weight:800; letter-spacing:1px;">ENCONTRÁ TU PRÓXIMO LUGAR FAVORITO</p>
     <p>Ideas para salir, compartir y disfrutar a tu manera.</p>
 </div>
 """, unsafe_allow_html=True)
+if archivo(VIDEO).exists():
+    st.video(str(archivo(VIDEO)))
 
 # =========================================================
 # 7. PESTAÑAS
@@ -952,8 +967,8 @@ with inicio:
     )
 
     if archivo(VIDEO).exists():
-        with st.expander("Ver video de Planly"):
-            st.video(str(archivo(VIDEO)))
+        st.markdown("### Un vistazo a Planly")
+        st.video(str(archivo(VIDEO)))
 
 
 # =========================================================
@@ -1086,32 +1101,99 @@ with explorar:
                 st.info("Ese lugar ya está guardado.")
 
     st.markdown("---")
-    st.markdown("### Inspirate con estas categorías")
+    st.markdown("## Lugares turísticos para conocer")
+    st.write("Ideas de paseos reales por Buenos Aires y alrededores. Abrí el mapa para revisar horarios, entradas y cómo llegar.")
 
-    tonos_categoria = [
+    lugares_turisticos = [
+        {
+            "nombre": "Parque de la Costa",
+            "wiki": "Parque de la Costa",
+            "zona": "Tigre, Buenos Aires",
+            "descripcion": "Parque de diversiones ideal para pasar el día.",
+            "busqueda": "Parque de la Costa, Tigre, Buenos Aires",
+        },
+        {
+            "nombre": "Puerto de Frutos",
+            "wiki": "Puerto de Frutos",
+            "zona": "Tigre, Buenos Aires",
+            "descripcion": "Paseo junto al río con puestos, decoración y artesanías.",
+            "busqueda": "Puerto de Frutos, Tigre, Buenos Aires",
+        },
+        {
+            "nombre": "Museo de Arte Tigre",
+            "wiki": "Museo de Arte Tigre",
+            "zona": "Tigre, Buenos Aires",
+            "descripcion": "Museo de arte en un edificio histórico frente al río.",
+            "busqueda": "Museo de Arte Tigre, Buenos Aires",
+        },
+        {
+            "nombre": "Caminito",
+            "wiki": "Caminito",
+            "zona": "La Boca, Ciudad de Buenos Aires",
+            "descripcion": "Calle museo al aire libre con casas coloridas y arte.",
+            "busqueda": "Caminito, La Boca, Buenos Aires",
+        },
+        {
+            "nombre": "Obelisco",
+            "wiki": "Obelisco de Buenos Aires",
+            "zona": "Centro, Ciudad de Buenos Aires",
+            "descripcion": "Uno de los monumentos más conocidos de la ciudad.",
+            "busqueda": "Obelisco de Buenos Aires",
+        },
+        {
+            "nombre": "Planetario Galileo Galilei",
+            "wiki": "Planetario Galileo Galilei",
+            "zona": "Palermo, Ciudad de Buenos Aires",
+            "descripcion": "Un paseo para descubrir astronomía y el espacio.",
+            "busqueda": "Planetario Galileo Galilei, Buenos Aires",
+        },
+        {
+            "nombre": "Reserva Ecológica Costanera Sur",
+            "wiki": "Reserva Ecológica de Buenos Aires",
+            "zona": "Puerto Madero, Ciudad de Buenos Aires",
+            "descripcion": "Senderos y naturaleza para recorrer al aire libre.",
+            "busqueda": "Reserva Ecológica Costanera Sur, Buenos Aires",
+        },
+        {
+            "nombre": "Temaikèn",
+            "wiki": "Temaikèn",
+            "zona": "Belén de Escobar, Buenos Aires",
+            "descripcion": "Bioparque para conocer animales y ambientes naturales.",
+            "busqueda": "Temaikèn, Escobar, Buenos Aires",
+        },
+    ]
+
+    tonos_lugares = [
         ("#EAF1FF", "#4269B2", "#D4E2FF"),
         ("#E4F5FF", "#28749A", "#C6E9FA"),
         ("#F0EBFF", "#7055A5", "#DDD2FF"),
         ("#E8F0FF", "#4965A0", "#D2DFFF"),
-        ("#E6F7F7", "#327E83", "#C9ECEA"),
-        ("#F1EEFF", "#6759A5", "#DDD7FF"),
-        ("#E8F4FF", "#356F9B", "#CFE7FA"),
-        ("#F3EDFF", "#795AA4", "#E4D6FF"),
-        ("#EAF0FF", "#3F619D", "#D4E0FF"),
-        ("#E5F6FF", "#367A9D", "#C8EAF8"),
     ]
-    columnas = st.columns(2)
 
-    for i, (categoria, descripcion) in enumerate(CATEGORIAS.items()):
-        fondo_cat, texto_cat, borde_cat = tonos_categoria[i % len(tonos_categoria)]
-        with columnas[i % 2]:
-            st.markdown(
-                f'''<div style="background:{fondo_cat}; border:1px solid {borde_cat}; border-radius:18px; padding:18px 20px; margin-bottom:12px; min-height:105px;">
-                    <div style="font-weight:900; color:{texto_cat}; font-size:1.02rem; margin-bottom:7px;">{categoria}</div>
-                    <div style="color:#52647D; font-size:0.9rem; line-height:1.5;">{descripcion.capitalize()}</div>
-                </div>''',
-                unsafe_allow_html=True,
-            )
+    for inicio_lote in range(0, len(lugares_turisticos), 2):
+        columnas_lugares = st.columns(2, gap="large")
+        for columna, lugar in zip(columnas_lugares, lugares_turisticos[inicio_lote:inicio_lote + 2]):
+            with columna:
+                fondo_lugar, texto_lugar, borde_lugar = tonos_lugares[(inicio_lote // 2) % len(tonos_lugares)]
+                with st.container(border=True):
+                    foto_lugar = obtener_foto_turistica(lugar["wiki"])
+                    if foto_lugar:
+                        st.image(foto_lugar, use_container_width=True)
+                    else:
+                        st.markdown(
+                            f'<div style="background:{fondo_lugar}; border-radius:14px; padding:24px; color:{texto_lugar}; text-align:center; font-weight:800;">{lugar["nombre"]}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    st.markdown(f"### {lugar['nombre']}")
+                    st.caption(lugar["zona"])
+                    st.write(lugar["descripcion"])
+                    st.link_button(
+                        "Ver en Google Maps",
+                        buscar_maps(lugar["busqueda"]),
+                        use_container_width=True,
+                    )
+
+    st.caption("Las fotos se cargan desde Wikipedia cuando hay una imagen disponible. Confirmá horarios, entradas y disponibilidad antes de ir.")
 
 # =========================================================
 # 10. CREAR UN PLAN
@@ -1369,28 +1451,25 @@ with crear:
                     )
 
                 if clima and "error" not in clima:
+                    st.markdown(
+                        f'''<div style="background:linear-gradient(130deg,#E8F2FF 0%,#F4F0FF 100%); border:1px solid #D9E4FA; border-radius:22px; padding:22px 24px; margin:8px 0 16px 0;">
+                            <div style="font-size:0.78rem; font-weight:900; letter-spacing:1.5px; color:#5574A9; text-transform:uppercase;">Pronóstico para tu salida</div>
+                            <div style="font-size:1.65rem; font-weight:900; color:#263F73; margin-top:5px;">{clima['descripcion']}</div>
+                            <div style="font-size:0.95rem; color:#5B6E8C; margin-top:3px;">{clima.get('lugar', plan['zona'])} · {fecha_elegida.strftime('%d/%m/%Y')}</div>
+                        </div>''',
+                        unsafe_allow_html=True,
+                    )
                     cc1, cc2, cc3 = st.columns(3)
-
-                    cc1.metric(
-                        "Estado",
-                        clima["descripcion"],
-                    )
-
-                    cc2.metric(
-                        "Máxima",
-                        f"{clima['max']} °C",
-                    )
-
+                    cc1.metric("Temperatura máxima", f"{clima['max']} °C")
+                    cc2.metric("Temperatura mínima", f"{clima['min']} °C")
                     cc3.metric(
-                        "Mínima",
-                        f"{clima['min']} °C",
+                        "Probabilidad de lluvia",
+                        f"{int(clima['lluvia'])}%" if clima["lluvia"] is not None else "Sin dato",
                     )
-
                     if clima["lluvia"] is not None:
-                        st.markdown("**Probabilidad de lluvia**")
                         st.progress(
                             max(0, min(100, int(clima["lluvia"]))) / 100,
-                            text=f"{clima['lluvia']}% de probabilidad",
+                            text="Probabilidad de lluvia",
                         )
                 else:
                     st.info(
