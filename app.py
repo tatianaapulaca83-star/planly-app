@@ -7,6 +7,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 import json
 import re
+import base64
 
 # =========================================================
 # 1. CONFIGURACIÓN
@@ -298,6 +299,46 @@ footer {
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+# =========================================================
+# PLAN COMPARTIDO (vista pública de solo lectura)
+# =========================================================
+
+try:
+    codigo_plan_compartido = st.query_params.get("plan_compartido", "")
+    plan_compartido = json.loads(
+        base64.urlsafe_b64decode(codigo_plan_compartido.encode()).decode("utf-8")
+    ) if codigo_plan_compartido else None
+except (ValueError, TypeError, json.JSONDecodeError):
+    plan_compartido = None
+
+if plan_compartido:
+    st.markdown("""
+    <div class="hero">
+        <p style="font-weight:800; letter-spacing:2px; text-transform:uppercase;">Un plan para compartir</p>
+        <h1 style="font-size:clamp(2.2rem,5vw,3.4rem); letter-spacing:1px;">Planly</h1>
+        <p>Te compartieron una salida. Acá tenés los detalles para organizarse.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown(f"## {plan_compartido.get('actividad', 'Salida')}") 
+    st.write(f"**Lugar:** {plan_compartido.get('lugar', '') or plan_compartido.get('zona', 'A definir')}")
+    st.write(f"**Zona:** {plan_compartido.get('zona', 'A definir')}")
+    st.write(f"**Fecha:** {plan_compartido.get('fecha_mostrar', 'A definir')}")
+    st.write(f"**Hora de encuentro:** {plan_compartido.get('hora_exacta', 'A definir')}")
+    st.write(f"**Horario de la salida:** {plan_compartido.get('hora', 'A definir')}")
+    st.write(f"**Con quién:** {plan_compartido.get('con_quien', 'A definir')}")
+    if plan_compartido.get("notas"):
+        st.write(f"**Detalles:** {plan_compartido['notas']}")
+    destino_compartido = plan_compartido.get('lugar') or plan_compartido.get('zona') or ''
+    if destino_compartido:
+        st.link_button(
+            "Abrir el lugar en Google Maps",
+            buscar_maps(f"{destino_compartido}, {plan_compartido.get('zona', '')}, Argentina"),
+            use_container_width=True,
+        )
+    st.caption("Este enlace muestra una copia de los detalles compartidos. Los cambios posteriores del plan original no se actualizan automáticamente.")
+    st.stop()
 
 # =========================================================
 # 2.1. AUTENTICACIÓN CON FIREBASE
@@ -1293,6 +1334,12 @@ with crear:
             placeholder="Ej.: Lanús, Buenos Aires",
         )
 
+        lugar_especifico_plan = st.text_input(
+            "¿A qué lugar específico querés ir?",
+            placeholder="Ej.: Parque de la Costa, una cafetería o una dirección",
+            help="Si todavía no decidiste el lugar, podés dejarlo vacío y elegirlo después.",
+        )
+
         actividad_plan = st.selectbox(
             "Tipo de salida",
             list(CATEGORIAS.keys()),
@@ -1313,6 +1360,23 @@ with crear:
         hora_plan = st.selectbox(
             "Horario aproximado",
             ["Mañana", "Mediodía", "Tarde", "Atardecer", "Noche"],
+        )
+
+        hora_exacta_plan = st.selectbox(
+            "¿A qué hora se encuentran?",
+            [f"{h:02d}:{m:02d}" for h in range(7, 24) for m in (0, 15, 30, 45)],
+            index=32,
+        )
+
+        con_quien_plan = st.text_input(
+            "¿Con quién vas?",
+            placeholder="Ej.: con mi amiga Sofi, con mi familia o con compañeros",
+        )
+
+        notas_plan = st.text_area(
+            "Detalles para acordarse",
+            placeholder="Ej.: nos encontramos en la entrada, llevar SUBE, comprar entradas antes...",
+            height=90,
         )
 
         st.markdown("### Tu grupo y tu presupuesto")
@@ -1394,6 +1458,10 @@ with crear:
 
             nuevo_plan = {
                 "zona": zona_plan.strip(),
+                "lugar": lugar_especifico_plan.strip(),
+                "hora_exacta": hora_exacta_plan,
+                "con_quien": con_quien_plan.strip(),
+                "notas": notas_plan.strip(),
                 "actividad": actividad_final,
                 "categoria_original": actividad_plan,
                 "fecha": fecha_plan.isoformat(),
@@ -1437,11 +1505,16 @@ with crear:
         fecha_mostrar = date.fromisoformat(plan["fecha"]).strftime("%d/%m/%Y")
 
         st.write(
+            f"**Lugar específico:** {plan.get('lugar') or 'Todavía por decidir'}  \n"
             f"**Fecha:** {fecha_mostrar}  \n"
+            f"**Hora de encuentro:** {plan.get('hora_exacta', 'A definir')}  \n"
             f"**Horario:** {plan['hora']}  \n"
+            f"**Con quién:** {plan.get('con_quien') or 'Todavía por decidir'}  \n"
             f"**Personas:** {plan['personas']}  \n"
             f"**Transporte:** {plan['transporte']}"
         )
+        if plan.get("notas"):
+            st.write(f"**Detalles:** {plan['notas']}")
 
         if plan["preferencias"]:
             st.write(
@@ -1503,10 +1576,11 @@ with crear:
                 plan["actividad"],
             )
 
+        destino_especifico = plan.get("lugar", "").strip()
         consulta_plan = (
-            f"{actividad_busqueda}"
-            f"{detalle_preferencias}, "
-            f"{plan['zona']}, Argentina"
+            f"{destino_especifico}, {plan['zona']}, Argentina"
+            if destino_especifico
+            else f"{actividad_busqueda}{detalle_preferencias}, {plan['zona']}, Argentina"
         )
 
         st.markdown("### Tu plan del día")
@@ -1714,6 +1788,31 @@ with crear:
             buscar_maps(f"{alternativa}, {plan['zona']}, Argentina"),
             use_container_width=True,
         )
+
+        st.markdown("### Compartir este plan")
+        st.write("Generá un vínculo para mandárselo a tu amiga o a tu grupo. Quien lo abra podrá ver los detalles y abrir el destino en Google Maps.")
+        fecha_compartir = date.fromisoformat(plan["fecha"]).strftime("%d/%m/%Y")
+        datos_para_compartir = {
+            "actividad": plan.get("actividad", "Salida"),
+            "lugar": plan.get("lugar", ""),
+            "zona": plan.get("zona", ""),
+            "fecha_mostrar": fecha_compartir,
+            "hora_exacta": plan.get("hora_exacta", "A definir"),
+            "hora": plan.get("hora", "A definir"),
+            "con_quien": plan.get("con_quien", ""),
+            "notas": plan.get("notas", ""),
+        }
+        codigo_compartir = base64.urlsafe_b64encode(
+            json.dumps(datos_para_compartir, ensure_ascii=False).encode("utf-8")
+        ).decode("ascii")
+        url_compartir = "https://aplicacinplanly-fzdgevludiwfnrmkruamjo.streamlit.app/?plan_compartido=" + quote(codigo_compartir, safe="")
+        st.text_input(
+            "Vínculo para compartir",
+            value=url_compartir,
+            help="Copiá el vínculo completo y mandáselo a quien quieras.",
+            key="vinculo_plan_compartido",
+        )
+        st.caption("El enlace comparte una copia de los datos actuales; si editás el plan después, generá un vínculo nuevo.")
 
         st.markdown("###  Guardar tu idea")
 
