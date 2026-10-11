@@ -650,8 +650,8 @@ def buscar_maps(consulta):
     return "https://www.google.com/maps/search/?" + parametros
 
 def clave_orden_archivo(ruta):
-    """Ordena nombres como foto2 antes que foto10."""
-    return [int(parte) if parte.isdigit() else parte.casefold()
+    """Ordena nombres como foto2 antes que foto10, aunque mezclen números y letras."""
+    return [(0, int(parte)) if parte.isdigit() else (1, parte.casefold())
             for parte in re.split(r"(\d+)", ruta.name)]
 
 
