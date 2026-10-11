@@ -130,6 +130,19 @@ p, label, input, textarea, button, select, [data-testid="stMarkdownContainer"], 
     font-size: 0.88rem;
 }
 
+.optional-tag {
+    display: inline-block;
+    margin: 3px 0 5px 0;
+    padding: 3px 8px;
+    border-radius: 7px;
+    background: #FFF0F0;
+    color: #B42318;
+    border: 1px solid #F6CACA;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.7px;
+}
+
 /* Navegación elegante y adaptada a móvil */
 div[data-testid="stTabs"] {
     margin-top: 8px;
@@ -1337,6 +1350,7 @@ with crear:
             placeholder="Ej.: Lanús, Buenos Aires",
         )
 
+        st.markdown('<span class="optional-tag">OPCIONAL</span>', unsafe_allow_html=True)
         lugar_especifico_plan = st.text_input(
             "¿A qué lugar específico querés ir?",
             placeholder="Ej.: Parque de la Costa, una cafetería o una dirección",
@@ -1348,6 +1362,7 @@ with crear:
             list(CATEGORIAS.keys()),
         )
 
+        st.markdown('<span class="optional-tag">OPCIONAL · SOLO SI ELEGISTE «OTRA ACTIVIDAD»</span>', unsafe_allow_html=True)
         detalle_actividad_plan = st.text_input(
             "Si elegiste «Otra actividad», ¿qué querés hacer?",
             placeholder="Ej.: jugar al bowling, escalar en palestra, andar en bici, hacer kayak",
@@ -1371,11 +1386,13 @@ with crear:
             index=32,
         )
 
+        st.markdown('<span class="optional-tag">OPCIONAL</span>', unsafe_allow_html=True)
         con_quien_plan = st.text_input(
             "¿Con quién vas?",
-            placeholder="Ej.: con mi amiga Sofi, con mi familia o con compañeros",
+            placeholder="Ej.: con mi amiga, con mi familia o con compañeros",
         )
 
+        st.markdown('<span class="optional-tag">OPCIONAL</span>', unsafe_allow_html=True)
         notas_plan = st.text_area(
             "Detalles para acordarse",
             placeholder="Ej.: nos encontramos en la entrada, llevar SUBE, comprar entradas antes...",
@@ -1525,6 +1542,50 @@ with crear:
                 + ", ".join(plan["preferencias"])
             )
 
+        # Mostrar el mapa inmediatamente debajo de los datos principales del plan.
+        destino_especifico = plan.get("lugar", "").strip()
+        if plan.get("categoria_original") == "Otra actividad":
+            actividad_busqueda = plan["actividad"]
+        else:
+            actividad_busqueda = CATEGORIAS.get(
+                plan.get("categoria_original", plan["actividad"]),
+                plan["actividad"],
+            )
+        preferencias_mapa = [
+            preferencia.lower()
+            for preferencia in plan["preferencias"]
+            if preferencia != "Indistinto"
+        ]
+        detalle_mapa = (
+            ", " + ", ".join(preferencias_mapa)
+            if preferencias_mapa
+            else ""
+        )
+        consulta_plan = (
+            f"{destino_especifico}, {plan['zona']}, Argentina"
+            if destino_especifico
+            else f"{actividad_busqueda}{detalle_mapa}, {plan['zona']}, Argentina"
+        )
+
+        st.markdown("### Lugares y mapa")
+        st.caption(f"Buscamos opciones relacionadas con: {plan['actividad']}")
+
+        st.link_button(
+            "Ver lugares para esta salida",
+            buscar_maps(consulta_plan),
+            use_container_width=True,
+        )
+
+        st.components.v1.iframe(
+            "https://maps.google.com/maps?"
+            + urlencode({
+                "q": consulta_plan,
+                "output": "embed",
+            }),
+            height=330,
+            scrolling=False,
+        )
+
         if plan["tipo_presupuesto"] == "Por persona":
             limite_total = plan["presupuesto"] * plan["personas"]
         else:
@@ -1560,32 +1621,6 @@ with crear:
             "transporte, entradas ni gastos adicionales."
         )
 
-        preferencias_busqueda = [
-            preferencia.lower()
-            for preferencia in plan["preferencias"]
-            if preferencia != "Indistinto"
-        ]
-        detalle_preferencias = (
-            ", " + ", ".join(preferencias_busqueda)
-            if preferencias_busqueda
-            else ""
-        )
-
-        if plan.get("categoria_original") == "Otra actividad":
-            actividad_busqueda = plan["actividad"]
-        else:
-            actividad_busqueda = CATEGORIAS.get(
-                plan.get("categoria_original", plan["actividad"]),
-                plan["actividad"],
-            )
-
-        destino_especifico = plan.get("lugar", "").strip()
-        consulta_plan = (
-            f"{destino_especifico}, {plan['zona']}, Argentina"
-            if destino_especifico
-            else f"{actividad_busqueda}{detalle_preferencias}, {plan['zona']}, Argentina"
-        )
-
         st.markdown("### Tu plan del día")
         st.write("Este es un horario orientativo que podés adaptar según los turnos, el viaje y el presupuesto.")
 
@@ -1617,25 +1652,6 @@ with crear:
             "Buscar dónde comer cerca",
             buscar_alrededor("restaurantes económicos", plan["zona"]),
             use_container_width=True,
-        )
-
-        st.markdown("### Lugares y mapa")
-        st.caption(f"Buscamos opciones relacionadas con: {plan['actividad']}")
-
-        st.link_button(
-            "Ver lugares para esta salida",
-            buscar_maps(consulta_plan),
-            use_container_width=True,
-        )
-
-        st.components.v1.iframe(
-            "https://maps.google.com/maps?"
-            + urlencode({
-                "q": consulta_plan,
-                "output": "embed",
-            }),
-            height=330,
-            scrolling=False,
         )
 
         st.markdown("### Opciones cerca de tu salida")
