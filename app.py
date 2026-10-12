@@ -345,11 +345,12 @@ if plan_compartido:
         st.write(f"**Detalles:** {plan_compartido['notas']}")
     destino_compartido = plan_compartido.get('lugar') or plan_compartido.get('zona') or ''
     if destino_compartido:
+        consulta_compartida = f"{plan_compartido.get('lugar')}, {plan_compartido.get('zona', '')}, Argentina" if plan_compartido.get('lugar') else f"{plan_compartido.get('zona', '')}, Argentina"
         st.link_button(
-            "Abrir el lugar en Google Maps",
+            "📍 Abrir el lugar en Google Maps",
             "https://www.google.com/maps/search/?" + urlencode({
                 "api": "1",
-                "query": f"{destino_compartido}, {plan_compartido.get('zona', '')}, Argentina",
+                "query": consulta_compartida,
             }),
             use_container_width=True,
         )
@@ -706,6 +707,58 @@ def buscar_maps(consulta):
     })
     return "https://www.google.com/maps/search/?" + parametros
 
+def url_maps_plan(plan):
+    """Prioriza el lugar exacto escrito por la persona; si falta, usa la zona."""
+    destino = (plan.get("lugar") or "").strip()
+    zona = (plan.get("zona") or "").strip()
+    consulta = f"{destino}, {zona}, Argentina" if destino else f"{zona}, Argentina"
+    return buscar_maps(consulta)
+
+
+def mostrar_detalle_plan_guardado(plan, clave):
+    """Muestra el plan completo elegido desde Inicio o desde el historial."""
+    st.markdown("### Detalles de tu plan")
+    st.markdown(f"#### {plan.get('actividad', 'Salida')} en {plan.get('zona', 'Zona a definir')}")
+    fecha = plan.get("fecha", "")
+    try:
+        fecha = date.fromisoformat(fecha).strftime("%d/%m/%Y")
+    except (ValueError, TypeError):
+        fecha = fecha or "A definir"
+
+    st.write(f"**Lugar exacto:** {plan.get('lugar') or 'Todavía por decidir'}")
+    st.write(f"**Zona:** {plan.get('zona') or 'A definir'}")
+    st.write(f"**Fecha:** {fecha}")
+    st.write(f"**Hora de encuentro:** {plan.get('hora_exacta', 'A definir')}")
+    st.write(f"**Horario de la salida:** {plan.get('hora', 'A definir')}")
+    st.write(f"**Con quién:** {plan.get('con_quien') or 'Todavía por decidir'}")
+    st.write(f"**Cantidad de personas:** {plan.get('personas', 'A definir')}")
+    st.write(f"**Transporte:** {plan.get('transporte', 'A definir')}")
+    st.write(f"**Presupuesto:** {dinero(plan.get('presupuesto', 0))} ({plan.get('tipo_presupuesto', 'No especificado')})")
+    st.write(f"**Gasto estimado por persona:** {dinero(plan.get('gasto_persona', 0))}")
+    st.write(f"**Gasto total estimado:** {dinero(plan.get('gasto_total', 0))}")
+    preferencias = plan.get("preferencias", [])
+    if preferencias:
+        st.write("**Preferencias:** " + ", ".join(preferencias))
+    if plan.get("notas"):
+        st.write(f"**Notas:** {plan['notas']}")
+
+    st.link_button(
+        "📍 Ver este lugar en Google Maps",
+        url_maps_plan(plan),
+        use_container_width=True,
+    )
+    st.link_button(
+        "Cómo llegar",
+        crear_ruta(
+            f"{(plan.get('lugar') or plan.get('zona') or '').strip()}, Argentina",
+            plan.get("transporte", "Todavía no lo sé"),
+        ),
+        use_container_width=True,
+    )
+    if st.button("Cerrar detalles", key=f"cerrar_detalle_{clave}", use_container_width=True):
+        st.session_state.plan_seleccionado_guardado = None
+        st.rerun()
+
 def clave_orden_archivo(ruta):
     """Ordena nombres como foto2 antes que foto10, aunque mezclen números y letras."""
     return [(0, int(parte)) if parte.isdigit() else (1, parte.casefold())
@@ -973,6 +1026,9 @@ if "busqueda_actual" not in st.session_state:
 
 if "plan_actual" not in st.session_state:
     st.session_state.plan_actual = None
+
+if "plan_seleccionado_guardado" not in st.session_state:
+    st.session_state.plan_seleccionado_guardado = None
     
 # =========================================================
 # 5.1. CARGAR LOS DATOS DEL USUARIO DESDE FIRESTORE
@@ -1090,6 +1146,27 @@ with inicio:
     )
 
     st.caption("El video de presentación está disponible en el encabezado de Planly.")
+
+    st.markdown("---")
+    st.markdown("### Tus planes guardados")
+    if not st.session_state.planes:
+        st.caption("Cuando crees y guardes un plan, lo vas a encontrar acá.")
+    else:
+        for indice_inicio, plan_inicio in list(enumerate(reversed(st.session_state.planes)))[:3]:
+            indice_real_inicio = len(st.session_state.planes) - 1 - indice_inicio
+            with st.container(border=True):
+                st.markdown(f"**{plan_inicio.get('actividad', 'Salida')} · {plan_inicio.get('lugar') or plan_inicio.get('zona', 'Lugar a definir')}**")
+                st.caption(f"{plan_inicio.get('fecha', 'Fecha a definir')} · {plan_inicio.get('hora', 'Horario a definir')} · {plan_inicio.get('personas', '?')} persona(s)")
+                ver_col, mapa_col = st.columns(2)
+                with ver_col:
+                    if st.button("Ver detalles", key=f"inicio_detalle_{indice_real_inicio}", use_container_width=True):
+                        st.session_state.plan_seleccionado_guardado = indice_real_inicio
+                with mapa_col:
+                    st.link_button("Ver en el mapa", url_maps_plan(plan_inicio), use_container_width=True)
+
+    seleccionado_inicio = st.session_state.get("plan_seleccionado_guardado")
+    if isinstance(seleccionado_inicio, int) and 0 <= seleccionado_inicio < len(st.session_state.planes):
+        mostrar_detalle_plan_guardado(st.session_state.planes[seleccionado_inicio], "inicio")
 
 
 # =========================================================
@@ -1938,15 +2015,23 @@ with favoritos:
 
                 st.write(
                     "Costo total estimado: "
-                    + dinero(plan_guardado["gasto_total"])
+                    + dinero(plan_guardado.get("gasto_total", 0))
                 )
 
-                st.link_button(
-                    "Ver zona en Maps",
-                    buscar_maps(
-                        f"{plan_guardado['zona']}, Argentina"
-                    ),
-                )
+                col_detalle_hist, col_mapa_hist = st.columns(2)
+                with col_detalle_hist:
+                    if st.button("Ver todos los detalles", key=f"historial_detalle_{i}", use_container_width=True):
+                        st.session_state.plan_seleccionado_guardado = len(st.session_state.planes) - 1 - i
+                with col_mapa_hist:
+                    st.link_button(
+                        "Ver en el mapa",
+                        url_maps_plan(plan_guardado),
+                        use_container_width=True,
+                    )
+
+        seleccionado_historial = st.session_state.get("plan_seleccionado_guardado")
+        if isinstance(seleccionado_historial, int) and 0 <= seleccionado_historial < len(st.session_state.planes):
+            mostrar_detalle_plan_guardado(st.session_state.planes[seleccionado_historial], "historial")
 
 # =========================================================
 # 12. PIE DE PÁGINA
