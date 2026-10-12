@@ -715,8 +715,9 @@ def url_maps_plan(plan):
     return buscar_maps(consulta)
 
 
+@st.dialog("Detalles de tu plan", width="large")
 def mostrar_detalle_plan_guardado(plan, clave):
-    """Muestra el plan completo elegido desde Inicio o desde el historial."""
+    """Abre los detalles del plan en una ventana emergente, no al fondo de la página."""
     st.markdown("### Detalles de tu plan")
     st.markdown(f"#### {plan.get('actividad', 'Salida')} en {plan.get('zona', 'Zona a definir')}")
     fecha = plan.get("fecha", "")
@@ -1164,9 +1165,6 @@ with inicio:
                 with mapa_col:
                     st.link_button("Ver en el mapa", url_maps_plan(plan_inicio), use_container_width=True)
 
-    seleccionado_inicio = st.session_state.get("plan_seleccionado_guardado")
-    if isinstance(seleccionado_inicio, int) and 0 <= seleccionado_inicio < len(st.session_state.planes):
-        mostrar_detalle_plan_guardado(st.session_state.planes[seleccionado_inicio], "inicio")
 
 
 # =========================================================
@@ -2029,12 +2027,19 @@ with favoritos:
                         use_container_width=True,
                     )
 
-        seleccionado_historial = st.session_state.get("plan_seleccionado_guardado")
-        if isinstance(seleccionado_historial, int) and 0 <= seleccionado_historial < len(st.session_state.planes):
-            mostrar_detalle_plan_guardado(st.session_state.planes[seleccionado_historial], "historial")
+
 
 # =========================================================
-# 12. PIE DE PÁGINA
+# 12. VENTANA DE DETALLES DEL PLAN SELECCIONADO
+# =========================================================
+
+seleccionado = st.session_state.get("plan_seleccionado_guardado")
+if isinstance(seleccionado, int) and 0 <= seleccionado < len(st.session_state.planes):
+    mostrar_detalle_plan_guardado(st.session_state.planes[seleccionado], "guardado")
+
+
+# =========================================================
+# 13. PIE DE PÁGINA
 # =========================================================
 
 st.markdown("---")
