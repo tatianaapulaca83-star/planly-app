@@ -812,6 +812,88 @@ def mostrar_detalle_plan_guardado(plan, clave):
         st.session_state.plan_seleccionado_guardado = None
         st.rerun()
 
+@st.dialog("Editar plan", width="large")
+def editar_plan_guardado(indice):
+    """Edita un plan existente y sincroniza los cambios."""
+    if not isinstance(indice, int) or not (0 <= indice < len(st.session_state.planes)):
+        st.error("No encontramos ese plan en tu historial.")
+        return
+    original = st.session_state.planes[indice]
+    st.markdown(f"### ✏️ Editá tu salida: {original.get('actividad', 'Plan')}")
+    st.caption("Cambiá lo que necesites y guardá. No hace falta crear otro plan.")
+    categorias = list(CATEGORIAS.keys())
+    categoria_actual = original.get("categoria_original", original.get("actividad", "Otra actividad"))
+    if categoria_actual not in categorias:
+        categoria_actual = "Otra actividad"
+    try:
+        fecha_actual = date.fromisoformat(original.get("fecha", date.today().isoformat()))
+    except (ValueError, TypeError):
+        fecha_actual = date.today()
+    horarios = [f"{h:02d}:{m:02d}" for h in range(7, 24) for m in (0, 15, 30, 45)]
+    hora_actual = original.get("hora_exacta", "15:00")
+    if hora_actual not in horarios:
+        hora_actual = "15:00"
+    bloques = ["Mañana", "Mediodía", "Tarde", "Atardecer", "Noche"]
+    bloque_actual = original.get("hora", "Tarde")
+    if bloque_actual not in bloques:
+        bloque_actual = "Tarde"
+    transportes = list(TRANSPORTES)
+    transporte_actual = original.get("transporte", "Todavía no lo sé")
+    if transporte_actual not in transportes:
+        transportes.append(transporte_actual)
+    tipos = ["Por persona", "Total del grupo"]
+    tipo_actual = original.get("tipo_presupuesto", "Por persona")
+    if tipo_actual not in tipos:
+        tipo_actual = "Por persona"
+    with st.form(f"form_editar_plan_{indice}"):
+        zona = st.text_input("Zona", value=original.get("zona", ""), key=f"ed_zona_{indice}")
+        lugar = st.text_input("Lugar exacto", value=original.get("lugar", ""), key=f"ed_lugar_{indice}")
+        categoria = st.selectbox("Tipo de salida", categorias, index=categorias.index(categoria_actual), key=f"ed_cat_{indice}")
+        detalle = st.text_input("Detalle (si elegiste Otra actividad)", value=original.get("actividad", "") if categoria_actual == "Otra actividad" else "", key=f"ed_detalle_{indice}")
+        fecha = st.date_input("Fecha", value=fecha_actual, key=f"ed_fecha_{indice}")
+        hora_exacta = st.selectbox("Hora de encuentro", horarios, index=horarios.index(hora_actual), key=f"ed_hora_{indice}")
+        bloque = st.selectbox("Horario aproximado", bloques, index=bloques.index(bloque_actual), key=f"ed_bloque_{indice}")
+        con_quien = st.text_input("¿Con quién vas?", value=original.get("con_quien", ""), key=f"ed_con_quien_{indice}")
+        notas = st.text_area("Detalles para acordarse", value=original.get("notas", ""), key=f"ed_notas_{indice}")
+        personas = st.number_input("Cantidad de personas", min_value=1, max_value=100, value=max(1, min(100, int(original.get("personas", 2) or 2))), key=f"ed_personas_{indice}")
+        tipo = st.radio("Presupuesto indicado", tipos, index=tipos.index(tipo_actual), horizontal=True, key=f"ed_tipo_{indice}")
+        presupuesto = st.number_input("Presupuesto máximo ($)", min_value=0, value=max(0, int(original.get("presupuesto", 10000) or 0)), step=1000, key=f"ed_presupuesto_{indice}")
+        gasto_persona = st.number_input("Gasto estimado por persona ($)", min_value=0, value=max(0, int(original.get("gasto_persona", 0) or 0)), step=500, key=f"ed_gasto_{indice}")
+        transporte = st.selectbox("Transporte", transportes, index=transportes.index(transporte_actual), key=f"ed_transporte_{indice}")
+        preferencias = st.multiselect("Preferencias", PREFERENCIAS, default=[p for p in original.get("preferencias", []) if p in PREFERENCIAS], key=f"ed_pref_{indice}")
+        ver_clima = st.checkbox("Consultar el pronóstico", value=bool(original.get("ver_clima", True)), key=f"ed_clima_{indice}")
+        guardar = st.form_submit_button("💾 Guardar cambios", type="primary", use_container_width=True)
+    if guardar:
+        if not zona.strip():
+            st.warning("Completá la zona para guardar el plan.")
+            return
+        actividad_final = detalle.strip() if categoria == "Otra actividad" and detalle.strip() else categoria
+        actualizado = dict(original)
+        actualizado.update({
+            "id": original.get("id") or uuid.uuid4().hex, "zona": zona.strip(), "lugar": lugar.strip(),
+            "actividad": actividad_final, "categoria_original": categoria, "fecha": fecha.isoformat(),
+            "hora_exacta": hora_exacta, "hora": bloque, "con_quien": con_quien.strip(), "notas": notas.strip(),
+            "personas": int(personas), "tipo_presupuesto": tipo, "presupuesto": int(presupuesto),
+            "gasto_persona": int(gasto_persona), "gasto_total": int(gasto_persona * personas),
+            "transporte": transporte, "preferencias": preferencias, "ver_clima": ver_clima,
+        })
+        anteriores = list(st.session_state.planes)
+        st.session_state.planes[indice] = actualizado
+        try:
+            guardar_datos_firestore(st.session_state.planes, st.session_state.favoritos)
+            plan_actual = st.session_state.get("plan_actual")
+            if isinstance(plan_actual, dict) and (
+                plan_actual is original or (original.get("id") and plan_actual.get("id") == original.get("id"))
+            ):
+                st.session_state.plan_actual = actualizado
+            st.session_state.plan_pendiente_editar = None
+            st.session_state.aviso_plan_editado = True
+            st.rerun()
+        except Exception:
+            st.session_state.planes = anteriores
+            st.error("No pudimos guardar los cambios. Tu plan anterior sigue intacto; revisá la conexión e intentá otra vez.")
+
+
 @st.dialog("Eliminar plan", width="small")
 def confirmar_eliminar_plan(indice):
     """Pide confirmación antes de borrar un plan guardado."""
@@ -1245,12 +1327,15 @@ with inicio:
             with st.container(border=True):
                 st.markdown(f"**{plan_inicio.get('actividad', 'Salida')} · {plan_inicio.get('lugar') or plan_inicio.get('zona', 'Lugar a definir')}**")
                 st.caption(f"{plan_inicio.get('fecha', 'Fecha a definir')} · {plan_inicio.get('hora', 'Horario a definir')} · {plan_inicio.get('personas', '?')} persona(s)")
-                ver_col, mapa_col, borrar_col = st.columns([1, 1, 0.8])
+                ver_col, mapa_col, editar_col, borrar_col = st.columns([1, 1, 0.85, 0.8])
                 with ver_col:
                     if st.button("Ver detalles", key=f"inicio_detalle_{indice_real_inicio}", use_container_width=True):
                         st.session_state.plan_seleccionado_guardado = indice_real_inicio
                 with mapa_col:
                     st.link_button("Ver en el mapa", url_maps_plan(plan_inicio), use_container_width=True)
+                with editar_col:
+                    if st.button("✏️ Editar", key=f"inicio_editar_{indice_real_inicio}", use_container_width=True):
+                        st.session_state.plan_pendiente_editar = indice_real_inicio
                 with borrar_col:
                     if st.button("🗑️ Eliminar", key=f"inicio_eliminar_{indice_real_inicio}", use_container_width=True):
                         st.session_state.plan_pendiente_eliminar = indice_real_inicio
@@ -2151,7 +2236,7 @@ with favoritos:
                 )
 
                 indice_real_hist = len(st.session_state.planes) - 1 - i
-                col_detalle_hist, col_mapa_hist, col_borrar_hist = st.columns([1.15, 1, 0.8])
+                col_detalle_hist, col_mapa_hist, col_editar_hist, col_borrar_hist = st.columns([1.15, 1, 0.85, 0.8])
                 with col_detalle_hist:
                     if st.button("Ver todos los detalles", key=f"historial_detalle_{i}", use_container_width=True):
                         st.session_state.plan_seleccionado_guardado = indice_real_hist
@@ -2161,6 +2246,9 @@ with favoritos:
                         url_maps_plan(plan_guardado),
                         use_container_width=True,
                     )
+                with col_editar_hist:
+                    if st.button("✏️ Editar", key=f"historial_editar_{i}", use_container_width=True):
+                        st.session_state.plan_pendiente_editar = indice_real_hist
                 with col_borrar_hist:
                     if st.button("🗑️ Eliminar", key=f"historial_eliminar_{i}", use_container_width=True):
                         st.session_state.plan_pendiente_eliminar = indice_real_hist
@@ -2170,6 +2258,14 @@ with favoritos:
 # =========================================================
 # 12. VENTANA DE DETALLES DEL PLAN SELECCIONADO
 # =========================================================
+
+if st.session_state.get("aviso_plan_editado"):
+    st.success("¡Plan actualizado! Los cambios quedaron guardados.")
+    st.session_state.aviso_plan_editado = False
+
+indice_editar = st.session_state.get("plan_pendiente_editar")
+if isinstance(indice_editar, int) and 0 <= indice_editar < len(st.session_state.planes):
+    editar_plan_guardado(indice_editar)
 
 seleccionado = st.session_state.get("plan_seleccionado_guardado")
 if isinstance(seleccionado, int) and 0 <= seleccionado < len(st.session_state.planes):
