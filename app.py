@@ -280,35 +280,182 @@ footer {
     visibility: hidden;
 }
 
-@media (max-width: 700px) {
+/* Imágenes y medios fluidos: nunca deben desbordar su tarjeta */
+div[data-testid="stImage"] img,
+[data-testid="stImage"] img,
+video,
+iframe {
+    max-width: 100% !important;
+}
+
+div[data-testid="stImage"] img,
+[data-testid="stImage"] img {
+    height: auto;
+    object-fit: contain;
+}
+
+/* En tablet, las columnas se acomodan en filas de hasta dos */
+@media (min-width: 641px) and (max-width: 900px) {
     .block-container {
-        padding-top: 0.8rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
     }
 
-    div[data-testid="stTabs"] {
-        position: sticky;
-        bottom: 8px;
-        z-index: 999;
-        margin-top: 16px;
-        padding-top: 8px;
-        background: transparent;
+    div[data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        gap: 1rem !important;
+    }
+
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        min-width: calc(50% - 1rem) !important;
+        flex: 1 1 calc(50% - 1rem) !important;
     }
 
     div[data-testid="stTabs"] [data-baseweb="tab-list"] {
-        gap: 2px;
-        padding: 6px;
-        border-radius: 20px;
-        background: rgba(232, 238, 255, .97);
-        box-shadow: 0 8px 28px rgba(35, 61, 112, .15);
-        backdrop-filter: blur(12px);
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        max-width: 100%;
     }
 
     div[data-testid="stTabs"] button {
-        padding: 10px 5px;
-        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+}
+
+/* En celular: una columna por fila, texto legible y navegación desplazable */
+@media (max-width: 640px) {
+    .block-container {
+        padding: 0.7rem 0.8rem 2rem;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    h1 {
+        font-size: clamp(1.65rem, 7vw, 2.2rem) !important;
+        line-height: 1.2 !important;
+        overflow-wrap: anywhere;
+    }
+
+    h2 {
+        font-size: 1.4rem !important;
+        line-height: 1.3 !important;
+        overflow-wrap: anywhere;
+    }
+
+    h3 {
+        font-size: 1.15rem !important;
+        line-height: 1.35 !important;
+        overflow-wrap: anywhere;
+    }
+
+    p, label, [data-testid="stMarkdownContainer"], .small-note {
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .hero {
+        padding: 20px 17px;
+        margin-bottom: 16px;
+        border-radius: 22px;
+    }
+
+    .hero h1 {
+        font-size: clamp(2rem, 10vw, 3rem) !important;
+        letter-spacing: 2px !important;
+    }
+
+    .hero p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .section-card {
+        padding: 17px;
+        border-radius: 18px;
+    }
+
+    /* Evita que columnas de imágenes, métricas o botones queden apretadas */
+    div[data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        gap: 0.65rem !important;
+        align-items: stretch !important;
+    }
+
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        min-width: 100% !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    /* La barra de pestañas se desplaza horizontalmente sin tapar el contenido */
+    div[data-testid="stTabs"] {
+        position: static;
+        margin-top: 12px;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    div[data-testid="stTabs"] [data-baseweb="tab-list"] {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 4px;
+        padding: 6px;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-radius: 15px;
+        scrollbar-width: thin;
+    }
+
+    div[data-testid="stTabs"] button {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 9px 12px;
+        font-size: 0.82rem;
         min-height: 42px;
+    }
+
+    div[data-testid="stImage"] {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    div[data-testid="stImage"] img {
+        display: block;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        object-fit: contain !important;
+    }
+
+    .stButton > button,
+    .stLinkButton > a,
+    .stFormSubmitButton > button {
+        width: 100%;
+        min-height: 44px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.25;
+        padding: 0.55rem 0.65rem;
+    }
+
+    div[data-testid="stMetric"] {
+        padding: 13px;
+        border-radius: 15px;
+    }
+
+    iframe {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 14px !important;
+    }
+
+    /* Reduce el espacio lateral interno que puede provocar desbordes */
+    [data-testid="stVerticalBlock"],
+    [data-testid="stHorizontalBlock"] {
+        min-width: 0;
+        max-width: 100%;
     }
 }
 </style>
