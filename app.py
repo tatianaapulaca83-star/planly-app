@@ -1744,7 +1744,6 @@ with crear:
                     st.error("No pudimos sincronizar el cambio con tu cuenta. Intentá nuevamente.")
             else:
                 st.warning("No encontramos este plan en tu historial para guardar el cambio.")
-            st.rerun()
 
         if plan["preferencias"]:
             st.write(
