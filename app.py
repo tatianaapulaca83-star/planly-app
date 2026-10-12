@@ -8,6 +8,7 @@ from urllib.error import URLError
 import json
 import re
 import base64
+import uuid
 
 # =========================================================
 # 1. CONFIGURACIÓN
@@ -1514,12 +1515,13 @@ with crear:
             placeholder="Ej.: Lanús, Buenos Aires",
         )
 
-        st.markdown('<span class="optional-tag">OPCIONAL</span>', unsafe_allow_html=True)
+        st.markdown("### ¿Ya elegiste el lugar? Anotalo acá")
         lugar_especifico_plan = st.text_input(
-            "¿A qué lugar específico querés ir?",
-            placeholder="Ej.: Parque de la Costa, una cafetería o una dirección",
-            help="Si todavía no decidiste el lugar, podés dejarlo vacío y elegirlo después.",
+            "Nombre exacto del lugar (como aparece en Google Maps)",
+            placeholder="Ej.: MP3 Karaoke, Lanús",
+            help="Buscá el lugar en Google Maps, copiá su nombre y pegalo acá. Planly no puede detectar automáticamente qué lugar tocaste en Google Maps.",
         )
+        st.caption("Si todavía no lo decidiste, podés dejarlo vacío y agregarlo después de crear el plan.")
 
         actividad_plan = st.selectbox(
             "Tipo de salida",
@@ -1641,6 +1643,7 @@ with crear:
             )
 
             nuevo_plan = {
+                "id": uuid.uuid4().hex,
                 "zona": zona_plan.strip(),
                 "lugar": lugar_especifico_plan.strip(),
                 "hora_exacta": hora_exacta_plan,
@@ -1663,6 +1666,7 @@ with crear:
             
             st.session_state.planes.append(nuevo_plan)
             st.session_state.plan_actual = nuevo_plan
+            st.session_state["lugar_editar_plan_actual"] = nuevo_plan["lugar"]
 
             try:
                 guardar_datos_firestore(
@@ -1699,6 +1703,48 @@ with crear:
         )
         if plan.get("notas"):
             st.write(f"**Detalles:** {plan['notas']}")
+
+        st.markdown("### ¿Elegiste otro lugar o querés confirmar el destino?")
+        st.caption("Podés buscarlo en Google Maps y después escribir acá el nombre exacto. Al guardar, también se actualizará el plan que tenés guardado.")
+        with st.form("actualizar_destino_plan"):
+            nuevo_destino_plan = st.text_input(
+                "Lugar exacto",
+                key="lugar_editar_plan_actual",
+                placeholder="Ej.: MP3 Karaoke, Lanús",
+            )
+            guardar_destino_plan = st.form_submit_button(
+                "Guardar lugar en mi plan",
+                use_container_width=True,
+            )
+
+        if guardar_destino_plan:
+            plan["lugar"] = nuevo_destino_plan.strip()
+            plan_id_actual = plan.get("id")
+            plan_actualizado = False
+            for plan_guardado in st.session_state.planes:
+                if (
+                    (plan_id_actual and plan_guardado.get("id") == plan_id_actual)
+                    or plan_guardado is plan
+                ):
+                    plan_guardado["lugar"] = nuevo_destino_plan.strip()
+                    plan_actualizado = True
+                    break
+            if plan_actualizado:
+                try:
+                    guardar_datos_firestore(
+                        st.session_state.planes,
+                        st.session_state.favoritos,
+                    )
+                    st.success(
+                        f"Lugar guardado: {nuevo_destino_plan.strip()}"
+                        if nuevo_destino_plan.strip()
+                        else "Se quitó el lugar específico de este plan."
+                    )
+                except Exception:
+                    st.error("No pudimos sincronizar el cambio con tu cuenta. Intentá nuevamente.")
+            else:
+                st.warning("No encontramos este plan en tu historial para guardar el cambio.")
+            st.rerun()
 
         if plan["preferencias"]:
             st.write(
