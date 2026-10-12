@@ -362,6 +362,9 @@ if plan_compartido:
 # =========================================================
 
 import requests
+import extra_streamlit_components as stx
+
+cookie_manager = stx.CookieManager(key='planly_auth_cookies')
 
 FIREBASE_API_KEY = st.secrets["firebase"]["api_key"]
 FIREBASE_PROJECT_ID = st.secrets["firebase"]["project_id"]
@@ -369,6 +372,27 @@ FIREBASE_PROJECT_ID = st.secrets["firebase"]["project_id"]
 URL_AUTH = (
     "https://identitytoolkit.googleapis.com/v1/accounts"
 )
+
+
+def renovar_sesion_firebase(refresh_token):
+    try:
+        respuesta = requests.post(
+            "https://securetoken.googleapis.com/v1/token",
+            params={"key": FIREBASE_API_KEY},
+            data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+            timeout=15,
+        )
+        datos = respuesta.json()
+        if not respuesta.ok:
+            return None
+        return {
+            "uid": datos.get("user_id"),
+            "email": datos.get("email"),
+            "id_token": datos.get("id_token"),
+            "refresh_token": datos.get("refresh_token", refresh_token),
+        }
+    except (requests.RequestException, ValueError):
+        return None
 
 
 def autenticar_firebase(modo, email, password):
@@ -479,6 +503,14 @@ if "firebase_user" not in st.session_state:
     st.session_state.firebase_user = None
 
 if not st.session_state.firebase_user:
+    token_guardado = cookie_manager.get("planly_refresh_token")
+    if token_guardado:
+        usuario_recuperado = renovar_sesion_firebase(token_guardado)
+        if usuario_recuperado and usuario_recuperado.get("uid"):
+            st.session_state.firebase_user = usuario_recuperado
+            cookie_manager.set("planly_refresh_token", usuario_recuperado["refresh_token"], key="actualizar_sesion_planly")
+
+if not st.session_state.firebase_user:
     acceso_texto, acceso_momi = st.columns([1.35, 1], gap="large", vertical_alignment="center")
     with acceso_texto:
         st.markdown("""
@@ -509,6 +541,11 @@ if not st.session_state.firebase_user:
                 "Contraseña",
                 type="password",
             )
+            recordar_sesion = st.checkbox(
+                "Mantener mi sesión iniciada en este dispositivo",
+                value=True,
+                help="Activá esta opción solo en un dispositivo personal.",
+            )
             enviar_login = st.form_submit_button(
                 "Iniciar sesión",
                 type="primary",
@@ -525,6 +562,10 @@ if not st.session_state.firebase_user:
                     password_login,
                 )
                 if correcto:
+                    if recordar_sesion:
+                        cookie_manager.set("planly_refresh_token", st.session_state.firebase_user["refresh_token"], key="guardar_sesion_planly")
+                    else:
+                        cookie_manager.delete("planly_refresh_token", key="borrar_sesion_planly")
                     st.rerun()
                 else:
                     st.error(mensaje)
@@ -569,6 +610,16 @@ if not st.session_state.firebase_user:
                     st.error(mensaje)
 
     st.stop()
+
+with st.sidebar:
+    st.caption(f"Sesión iniciada: {st.session_state.firebase_user.get('email', 'tu cuenta')}")
+    if st.button("Cerrar sesión", use_container_width=True):
+        st.session_state.firebase_user = None
+        cookie_manager.delete("planly_refresh_token", key="cerrar_sesion_planly")
+        st.session_state.firestore_cargado = False
+        st.session_state.planes = []
+        st.session_state.favoritos = []
+        st.rerun()
 
 # =========================================================
 # GUARDADO DE PLANES Y FAVORITOS EN FIRESTORE
