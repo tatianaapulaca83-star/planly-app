@@ -760,6 +760,41 @@ def mostrar_detalle_plan_guardado(plan, clave):
         st.session_state.plan_seleccionado_guardado = None
         st.rerun()
 
+@st.dialog("Eliminar plan", width="small")
+def confirmar_eliminar_plan(indice):
+    """Pide confirmación antes de borrar un plan guardado."""
+    if not isinstance(indice, int) or not (0 <= indice < len(st.session_state.planes)):
+        st.session_state.plan_pendiente_eliminar = None
+        st.rerun()
+
+    plan = st.session_state.planes[indice]
+    st.write(f"¿Querés eliminar **{plan.get('actividad', 'este plan')}** de tus planes guardados?")
+    st.caption("Esta acción no se puede deshacer.")
+
+    col_borrar, col_cancelar = st.columns(2)
+    with col_borrar:
+        if st.button("Sí, eliminar", type="primary", key="confirmar_borrado_plan", use_container_width=True):
+            planes_anteriores = list(st.session_state.planes)
+            st.session_state.planes.pop(indice)
+            try:
+                guardar_datos_firestore(st.session_state.planes, st.session_state.favoritos)
+                st.session_state.plan_pendiente_eliminar = None
+                seleccionado = st.session_state.get("plan_seleccionado_guardado")
+                if seleccionado == indice:
+                    st.session_state.plan_seleccionado_guardado = None
+                elif isinstance(seleccionado, int) and seleccionado > indice:
+                    st.session_state.plan_seleccionado_guardado = seleccionado - 1
+                st.session_state.aviso_plan_eliminado = True
+                st.rerun()
+            except Exception:
+                st.session_state.planes = planes_anteriores
+                st.error("No pudimos guardar el cambio. El plan sigue en tu historial; revisá la conexión e intentá otra vez.")
+    with col_cancelar:
+        if st.button("Cancelar", key="cancelar_borrado_plan", use_container_width=True):
+            st.session_state.plan_pendiente_eliminar = None
+            st.rerun()
+
+
 def clave_orden_archivo(ruta):
     """Ordena nombres como foto2 antes que foto10, aunque mezclen números y letras."""
     return [(0, int(parte)) if parte.isdigit() else (1, parte.casefold())
@@ -1158,12 +1193,15 @@ with inicio:
             with st.container(border=True):
                 st.markdown(f"**{plan_inicio.get('actividad', 'Salida')} · {plan_inicio.get('lugar') or plan_inicio.get('zona', 'Lugar a definir')}**")
                 st.caption(f"{plan_inicio.get('fecha', 'Fecha a definir')} · {plan_inicio.get('hora', 'Horario a definir')} · {plan_inicio.get('personas', '?')} persona(s)")
-                ver_col, mapa_col = st.columns(2)
+                ver_col, mapa_col, borrar_col = st.columns([1, 1, 0.8])
                 with ver_col:
                     if st.button("Ver detalles", key=f"inicio_detalle_{indice_real_inicio}", use_container_width=True):
                         st.session_state.plan_seleccionado_guardado = indice_real_inicio
                 with mapa_col:
                     st.link_button("Ver en el mapa", url_maps_plan(plan_inicio), use_container_width=True)
+                with borrar_col:
+                    if st.button("🗑️ Eliminar", key=f"inicio_eliminar_{indice_real_inicio}", use_container_width=True):
+                        st.session_state.plan_pendiente_eliminar = indice_real_inicio
 
 
 
@@ -2016,16 +2054,20 @@ with favoritos:
                     + dinero(plan_guardado.get("gasto_total", 0))
                 )
 
-                col_detalle_hist, col_mapa_hist = st.columns(2)
+                indice_real_hist = len(st.session_state.planes) - 1 - i
+                col_detalle_hist, col_mapa_hist, col_borrar_hist = st.columns([1.15, 1, 0.8])
                 with col_detalle_hist:
                     if st.button("Ver todos los detalles", key=f"historial_detalle_{i}", use_container_width=True):
-                        st.session_state.plan_seleccionado_guardado = len(st.session_state.planes) - 1 - i
+                        st.session_state.plan_seleccionado_guardado = indice_real_hist
                 with col_mapa_hist:
                     st.link_button(
                         "Ver en el mapa",
                         url_maps_plan(plan_guardado),
                         use_container_width=True,
                     )
+                with col_borrar_hist:
+                    if st.button("🗑️ Eliminar", key=f"historial_eliminar_{i}", use_container_width=True):
+                        st.session_state.plan_pendiente_eliminar = indice_real_hist
 
 
 
@@ -2036,6 +2078,15 @@ with favoritos:
 seleccionado = st.session_state.get("plan_seleccionado_guardado")
 if isinstance(seleccionado, int) and 0 <= seleccionado < len(st.session_state.planes):
     mostrar_detalle_plan_guardado(st.session_state.planes[seleccionado], "guardado")
+
+
+if st.session_state.get("aviso_plan_eliminado"):
+    st.success("Plan eliminado de tu historial.")
+    st.session_state.aviso_plan_eliminado = False
+
+indice_pendiente = st.session_state.get("plan_pendiente_eliminar")
+if isinstance(indice_pendiente, int):
+    confirmar_eliminar_plan(indice_pendiente)
 
 
 # =========================================================
